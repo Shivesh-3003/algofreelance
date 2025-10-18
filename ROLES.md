@@ -301,404 +301,124 @@ main (protected)
 
 ---
 
-## **🔷 Role 3: Backend API Developer** ✅ INDEPENDENT
-**Branch:** `feature/backend-api`
-**Dependencies:** None (Role 1 needed later for real contract integration)
+## **🔷 Role 3: Backend API Developer** 🤝 COLLABORATING WITH ROLE 1
+**Branch:** `feature/backend-api` (later in timeline)
+**Dependencies:** Working closely with Role 1
 **Key Files:** `projects/AlgoFreelance-backend/`
 
-### **🎯 New Focus: Build Entire API with Mocks, Integrate Contract Later**
+### **🎯 New Focus: Help Role 1 Complete Smart Contracts Faster, Then Build Backend**
 
-### **Hours 0-6: Backend Foundation (ZERO DEPENDENCIES)**
-- [ ] **H0-2: FastAPI Project Setup**
-  - Create `projects/AlgoFreelance-backend/` directory
-  - Initialize with Poetry:
-    ```bash
-    cd projects
-    mkdir AlgoFreelance-backend
-    cd AlgoFreelance-backend
-    poetry init
-    poetry add fastapi uvicorn py-algorand-sdk httpx python-multipart pydantic
-    ```
+### **Hours 0-12: Support Smart Contract Development**
+- [ ] **H0-3: Contract Testing Support**
+  - Work with Role 1 to write comprehensive tests for each contract method
+  - Help create test fixtures and helper functions in `tests/conftest.py`
+  - Write edge case tests (double approval, invalid state transitions, etc.)
+  - Assist in achieving 100% test coverage
+  - Focus on testing the grouped inner transactions logic (payment + mint + transfer)
 
-  - Create structure:
-    ```
-    backend/
-    ├── app/
-    │   ├── __init__.py
-    │   ├── main.py
-    │   ├── routes/
-    │   │   ├── __init__.py
-    │   │   ├── jobs.py
-    │   │   └── ipfs.py
-    │   ├── services/
-    │   │   ├── __init__.py
-    │   │   ├── algorand.py          # Will have mock + real modes
-    │   │   └── pinata.py
-    │   └── models/
-    │       ├── __init__.py
-    │       └── job.py
-    ├── tests/
-    ├── .env.example
-    ├── .env
-    └── pyproject.toml
-    ```
-
-- [ ] **H2-4: Data Models** *(PRD §8)*
-  - `models/job.py`:
+- [ ] **H3-6: Contract Integration Utilities**
+  - Create Python utility scripts for contract interaction
+  - Build `scripts/contract_client.py`:
     ```python
-    from pydantic import BaseModel, Field
-    from typing import Optional
-
-    class CreateJobRequest(BaseModel):
-        client_address: str = Field(..., min_length=58, max_length=58)
-        freelancer_address: str = Field(..., min_length=58, max_length=58)
-        escrow_amount: int = Field(..., gt=0)
-        job_title: str = Field(..., max_length=64)
-        job_description: str
-
-    class JobResponse(BaseModel):
-        app_id: int
-        app_address: str
-        client_address: str
-        freelancer_address: str
-        escrow_amount: int
-        job_status: int  # 0=Created, 1=Funded, 2=Submitted, 3=Completed
-        job_title: str
-        work_hash: Optional[str] = None
-        created_at: int
-        is_funded: bool
-
-    class SubmitWorkRequest(BaseModel):
-        ipfs_hash: str = Field(..., min_length=46, max_length=59)
-
-    class ApproveWorkResponse(BaseModel):
-        success: bool
-        payment_txn: str
-        nft_creation_txn: str
-        nft_transfer_txn: str
-        nft_asset_id: int
-        group_id: str
-        explorer_url: str
-
-    class NFTCertificate(BaseModel):
-        asset_id: int
-        asset_name: str
-        job_title: str
-        ipfs_url: str
-        client_address: str
-        completed_at: int
-        block_explorer: str
-
-    class PortfolioResponse(BaseModel):
-        freelancer_address: str
-        total_jobs: int
-        certificates: list[NFTCertificate]
-    ```
-
-- [ ] **H4-6: Mock Algorand Service** *(Can work without contract!)*
-  - `services/algorand.py`:
-    ```python
-    from algosdk.v2client import algod, indexer
+    from algosdk.v2client import algod
     from algosdk import transaction
-    import os
+    from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
 
-    class AlgorandService:
-        def __init__(self, mock_mode=True):
-            self.mock_mode = mock_mode
+    class EscrowContractClient:
+        """Helper class for interacting with deployed escrow contract"""
 
-            if not mock_mode:
-                self.algod = algod.AlgodClient(
-                    os.getenv("ALGOD_TOKEN", ""),
-                    os.getenv("ALGOD_SERVER", "https://testnet-api.algonode.cloud")
-                )
-                self.indexer = indexer.IndexerClient(
-                    "",
-                    "https://testnet-idx.algonode.cloud"
-                )
+        def __init__(self, app_id: int, algod_client: algod.AlgodClient):
+            self.app_id = app_id
+            self.algod = algod_client
 
-        def create_job(self, request: CreateJobRequest) -> dict:
-            """Deploy new escrow contract"""
-            if self.mock_mode:
-                return {
-                    "app_id": 99999999,
-                    "app_address": "MOCKAPPADDRESS" + "A" * 44,
-                    "txn_id": "MOCKTXN" + "A" * 45
-                }
-            else:
-                # TODO: Replace with actual contract deployment when Role 1 delivers
-                pass
+        def initialize(self, sender, signer, client_addr, freelancer_addr, amount, title):
+            """Call initialize method"""
+            # Build app call transaction
+            pass
 
-        def get_job(self, app_id: int) -> dict:
-            """Get job details from contract global state"""
-            if self.mock_mode:
-                return {
-                    "app_id": app_id,
-                    "client_address": "CLIENT" + "A" * 52,
-                    "freelancer_address": "FREELANCER" + "A" * 48,
-                    "escrow_amount": 5000000,
-                    "job_status": 1,
-                    "job_title": "Logo Design",
-                    "work_hash": None,
-                    "created_at": 1729270800,
-                    "is_funded": True
-                }
-            else:
-                # TODO: Query indexer for global state
-                pass
+        def submit_work(self, sender, signer, ipfs_hash):
+            """Call submit_work method"""
+            pass
 
-        def submit_work(self, app_id: int, ipfs_hash: str) -> dict:
-            """Call submit_work on contract"""
-            if self.mock_mode:
-                return {"txn_id": "SUBMITTXN" + "A" * 45}
-            else:
-                # TODO: Build and send app call transaction
-                pass
+        def approve_work(self, sender, signer):
+            """Call approve_work and handle inner transactions"""
+            pass
 
-        def approve_work(self, app_id: int) -> dict:
-            """Call approve_work (triggers inner txns)"""
-            if self.mock_mode:
-                return {
-                    "payment_txn": "PAYTXN" + "A" * 46,
-                    "nft_creation_txn": "NFTTXN" + "A" * 46,
-                    "nft_transfer_txn": "XFERTXN" + "A" * 45,
-                    "nft_asset_id": 87654321,
-                    "group_id": "GROUP" + "A" * 47
-                }
-            else:
-                # TODO: Build app call with increased fee
-                pass
-
-        def get_freelancer_nfts(self, address: str) -> list:
-            """Get all POWCERT NFTs owned by address"""
-            if self.mock_mode:
-                return [
-                    {
-                        "asset_id": 87654321,
-                        "asset_name": "AlgoFreelance: Logo Design",
-                        "job_title": "Logo Design",
-                        "ipfs_url": "ipfs://QmXyz123",
-                        "client_address": "CLIENT" + "A" * 52,
-                        "completed_at": 1729270800
-                    }
-                ]
-            else:
-                # TODO: Query indexer for assets
-                pass
+        def get_global_state(self):
+            """Read contract global state"""
+            pass
     ```
+  - Test these utilities against deployed contract
 
-### **Hours 6-14: API Endpoints with Mocks (ZERO DEPENDENCIES)**
-- [ ] **H6-8: Job Creation Endpoint** *(PRD §8 lines 354-383)*
-  - `routes/jobs.py`:
+- [ ] **H6-9: ABI Generation & Validation**
+  - Help Role 1 generate proper ABI JSON from the contract
+  - Validate that ABI matches contract methods
+  - Create `contract_abi.json` for backend integration
+  - Write validation scripts to ensure ABI correctness
+  - Document all method signatures and parameter types
+
+- [ ] **H9-12: Deployment Scripts & Documentation**
+  - Create automated deployment scripts
+  - Build `scripts/deploy_contract.py`:
     ```python
-    from fastapi import APIRouter, HTTPException
-    from app.models.job import CreateJobRequest, JobResponse
-    from app.services.algorand import AlgorandService
-
-    router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
-    algo_service = AlgorandService(mock_mode=True)  # Switch to False when contract ready
-
-    @router.post("/create", response_model=dict)
-    async def create_job(request: CreateJobRequest):
-        """Deploy new escrow contract"""
-        try:
-            result = algo_service.create_job(request)
-            return {
-                "success": True,
-                "app_id": result["app_id"],
-                "app_address": result["app_address"],
-                "funding_amount": request.escrow_amount + 300000,  # + 0.3 ALGO buffer
-                "txn_id": result["txn_id"],
-                "explorer_url": f"https://testnet.explorer.perawallet.app/application/{result['app_id']}"
-            }
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    """
+    Automated contract deployment to TestNet
+    - Compiles contract
+    - Deploys to TestNet
+    - Initializes with test parameters
+    - Funds contract
+    - Saves App ID and address
+    - Generates block explorer link
+    """
     ```
+  - Help write `SMART_CONTRACT.md` documentation
+  - Document all contract methods, parameters, and return values
+  - Create examples of how to call each method
 
-- [ ] **H8-10: Job Status Endpoint** *(PRD §8 lines 386-403)*
-  - Add to `routes/jobs.py`:
-    ```python
-    @router.get("/{app_id}", response_model=JobResponse)
-    async def get_job(app_id: int):
-        """Get job details and current status"""
-        try:
-            return algo_service.get_job(app_id)
-        except Exception as e:
-            raise HTTPException(status_code=404, detail="Job not found")
-    ```
+### **Hours 12-18: Backend Foundation & IPFS**
+- [ ] **H12-14: FastAPI Project Setup**
+  - Create `projects/AlgoFreelance-backend/` directory
+  - Initialize with Poetry and install dependencies
+  - Create backend structure (routes, services, models)
+  - Set up data models based on PRD §8
 
-- [ ] **H10-12: Submit Work Endpoint** *(PRD §8 lines 406-424)*
-  - Add to `routes/jobs.py`:
-    ```python
-    @router.post("/{app_id}/submit", response_model=dict)
-    async def submit_work(app_id: int, request: SubmitWorkRequest):
-        """Submit work (freelancer calls this)"""
-        try:
-            result = algo_service.submit_work(app_id, request.ipfs_hash)
-            return {
-                "success": True,
-                "txn_id": result["txn_id"],
-                "message": "Work submitted. Awaiting client approval."
-            }
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-    ```
-
-- [ ] **H12-14: Approve Work Endpoint** *(PRD §8 lines 428-449)*
-  - Add to `routes/jobs.py`:
-    ```python
-    from app.models.job import ApproveWorkResponse
-
-    @router.post("/{app_id}/approve", response_model=ApproveWorkResponse)
-    async def approve_work(app_id: int):
-        """Approve work and trigger payment + NFT mint"""
-        try:
-            result = algo_service.approve_work(app_id)
-            return ApproveWorkResponse(
-                success=True,
-                payment_txn=result["payment_txn"],
-                nft_creation_txn=result["nft_creation_txn"],
-                nft_transfer_txn=result["nft_transfer_txn"],
-                nft_asset_id=result["nft_asset_id"],
-                group_id=result["group_id"],
-                explorer_url=f"https://testnet.explorer.perawallet.app/tx-group/{result['group_id']}"
-            )
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-    ```
-
-### **Hours 14-18: IPFS & Portfolio (100% INDEPENDENT)**
 - [ ] **H14-16: Pinata Integration** *(PRD §8 lines 477-495)*
   - Get Pinata API key from https://pinata.cloud (free tier)
-  - `services/pinata.py`:
-    ```python
-    import httpx
-    import os
+  - Implement `services/pinata.py` for IPFS uploads
+  - Create `/api/v1/ipfs/upload` endpoint
+  - Test file upload and retrieval
 
-    class PinataService:
-        def __init__(self):
-            self.api_key = os.getenv("PINATA_API_KEY")
-            self.api_secret = os.getenv("PINATA_API_SECRET")
-            self.base_url = "https://api.pinata.cloud"
+- [ ] **H16-18: Algorand Service (Real Implementation)**
+  - Build `services/algorand.py` using the contract client from earlier
+  - Integrate actual contract deployment logic
+  - Use the ABI JSON generated earlier
+  - NO MOCKS - use real contract from the start
 
-        async def upload_file(self, file) -> dict:
-            """Upload file to IPFS via Pinata"""
-            headers = {
-                "pinata_api_key": self.api_key,
-                "pinata_secret_api_key": self.api_secret
-            }
-
-            files = {"file": file}
-
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.base_url}/pinning/pinFileToIPFS",
-                    headers=headers,
-                    files=files,
-                    timeout=30.0
-                )
-
-            if response.status_code != 200:
-                raise Exception(f"Pinata upload failed: {response.text}")
-
-            data = response.json()
-            ipfs_hash = data["IpfsHash"]
-
-            return {
-                "ipfs_hash": ipfs_hash,
-                "ipfs_url": f"ipfs://{ipfs_hash}",
-                "gateway_url": f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}",
-                "size": data["PinSize"]
-            }
-    ```
-
-  - `routes/ipfs.py`:
-    ```python
-    from fastapi import APIRouter, UploadFile, HTTPException
-    from app.services.pinata import PinataService
-
-    router = APIRouter(prefix="/api/v1/ipfs", tags=["ipfs"])
-    pinata_service = PinataService()
-
-    @router.post("/upload", response_model=dict)
-    async def upload_file(file: UploadFile):
-        """Upload file to IPFS via Pinata"""
-        try:
-            result = await pinata_service.upload_file(file.file)
-            return {"success": True, **result}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    ```
-
-- [ ] **H16-18: Portfolio Endpoint** *(PRD §8 lines 453-473)*
-  - Add to `routes/jobs.py`:
-    ```python
-    from app.models.job import PortfolioResponse
-
-    @router.get("/freelancers/{address}/nfts", response_model=PortfolioResponse)
-    async def get_freelancer_nfts(address: str):
-        """Get all POW NFTs for a freelancer"""
-        try:
-            certificates = algo_service.get_freelancer_nfts(address)
-            return PortfolioResponse(
-                freelancer_address=address,
-                total_jobs=len(certificates),
-                certificates=[
-                    {
-                        **cert,
-                        "block_explorer": f"https://testnet.explorer.perawallet.app/asset/{cert['asset_id']}"
-                    }
-                    for cert in certificates
-                ]
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    ```
-
-- [ ] **H18: Create main.py & Test with Swagger**
-  - `app/main.py`:
-    ```python
-    from fastapi import FastAPI
-    from fastapi.middleware.cors import CORSMiddleware
-    from app.routes import jobs, ipfs
-
-    app = FastAPI(
-        title="AlgoFreelance API",
-        description="Decentralized freelance escrow with NFT certificates",
-        version="1.0.0"
-    )
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    app.include_router(jobs.router)
-    app.include_router(ipfs.router)
-
-    @app.get("/")
-    def root():
-        return {"message": "AlgoFreelance API - Visit /docs for Swagger UI"}
-    ```
-
-  - Run: `poetry run uvicorn app.main:app --reload`
-  - Test all endpoints with Swagger UI at http://localhost:8000/docs
-
-### **Hours 18-24: Integrate Real Contract**
-- [ ] **H18-22: Replace Mocks with Real Contract**
-  - Get contract ABI from Role 1
-  - Update `AlgorandService` to use actual contract calls
-  - Switch `mock_mode=False`
+### **Hours 18-24: Complete Backend API**
+- [ ] **H18-20: Core Job Endpoints** *(PRD §8)*
+  - Implement all 5 endpoints:
+    - `POST /api/v1/jobs/create` - Deploy contract
+    - `GET /api/v1/jobs/{app_id}` - Get job details
+    - `POST /api/v1/jobs/{app_id}/submit` - Submit work
+    - `POST /api/v1/jobs/{app_id}/approve` - Approve & trigger inner txns
+    - `GET /api/v1/freelancers/{address}/nfts` - Get portfolio
+  - Use real contract interactions (no mocks)
   - Test against deployed TestNet contract
 
-- [ ] **H22-24: API Documentation & Deployment**
-  - Write `backend/README.md`
-  - Deploy to Render.com (free tier)
-  - Update frontend with production API URL
+- [ ] **H20-22: FastAPI Main App & CORS**
+  - Create `app/main.py` with all routes
+  - Add CORS middleware
+  - Test all endpoints with Swagger UI
+  - Ensure proper error handling
 
-**Deliverable:** Fully functional API (mocked first, real later) + IPFS upload
+- [ ] **H22-24: Backend Documentation**
+  - Write `backend/README.md`
+  - Document all API endpoints
+  - Add curl examples
+  - Create Postman collection
+  - Prepare for frontend integration
+
+**Deliverable:** Fully functional API with real contract integration + IPFS upload
 
 ---
 
@@ -1312,27 +1032,28 @@ main (protected)
 
 ---
 
-## **⏰ NEW Critical Path Timeline**
+## **⏰ NEW Critical Path Timeline (Roles 1 & 3 Paired)**
 
 ```
-Hours 0-12:  EVERYONE works 100% independently
+Hours 0-12:  ROLES 1 & 3 COLLABORATE ON SMART CONTRACT
   ↓
-  Role 1: Building contract
-  Role 2: Building test infrastructure, CI/CD
-  Role 3: Building API with mocks + Pinata integration
-  Role 4: Building UI components with mock data
-  Role 5: Writing docs, wallet utils, demo script
+  Roles 1 & 3: Building contract + tests + utilities TOGETHER
+  Role 2: Building test infrastructure, CI/CD independently
+  Role 4: Building UI components with mock data independently
+  Role 5: Writing docs, wallet utils, demo script independently
 
-Hour 12:     Role 3 has working mocked API
+Hour 12:     SMART CONTRACT COMPLETE (Roles 1 & 3)
+             Role 3 starts backend API setup + IPFS
+             Role 2 can run full tests with real contract
   ↓
-Hour 18:     Role 1 delivers contract
-             Role 2 can run tests + deploy to TestNet
-             Role 3 can replace mocks with real contract
+Hour 16:     Role 2 deploys to TestNet, shares App ID
+             Role 3 has backend foundation + IPFS ready
   ↓
-Hour 20:     Role 2 deploys to TestNet, shares App ID
+Hour 20:     Role 3 completes all API endpoints (using real contract)
+             Backend API fully functional
   ↓
-Hour 22:     Role 3 completes real API integration
-             Role 4 connects frontend to real API
+Hour 22:     Role 4 connects frontend to real API
+             Full integration testing begins
   ↓
 Hour 24:     ALL CORE FEATURES COMPLETE
              Begin end-to-end testing
@@ -1350,32 +1071,41 @@ Hour 36:     SUBMIT! 🚀
 
 ## **🔀 NEW Branch Merge Strategy**
 
-**Phase 1: Independent Work (H0-18)**
-- No merges - everyone works on their branch
+**Phase 1: Collaborative Contract Work (H0-12)**
+- Roles 1 & 3 work on `feature/smart-contract` branch together
+- Other roles work independently on their branches
 
-**Phase 2: Integration (H18-24)**
-1. **Hour 18:** `feature/smart-contract` → `main`
-2. **Hour 20:** `feature/testing-infrastructure` → `main` (includes deployed contract)
-3. **Hour 22:** `feature/backend-api` → `main` (with real contract integration)
-4. **Hour 24:** `feature/ui-components` → `main`
-5. **Hour 26:** `feature/docs-demo` → `main`
+**Phase 2: Backend Development (H12-20)**
+- Role 3 creates `feature/backend-api` branch at Hour 12
+- Continues building on contract work from Phase 1
 
-**Phase 3: Final Polish (H24-36)**
+**Phase 3: Integration (H16-24)**
+1. **Hour 12:** `feature/smart-contract` → `main` (completed by Roles 1 & 3)
+2. **Hour 16:** Role 2 merges `feature/testing-infrastructure` → `main` (includes deployed contract)
+3. **Hour 20:** `feature/backend-api` → `main` (fully functional API)
+4. **Hour 22:** `feature/ui-components` → `main`
+5. **Hour 24:** `feature/docs-demo` → `main`
+
+**Phase 4: Final Polish (H24-36)**
 - All final changes go directly to `main` via small PRs
 
 ---
 
 ## **📊 Role Comparison: Old vs New**
 
-| Role | Old Dependencies | New Dependencies | Hours Independent |
-|------|-----------------|------------------|-------------------|
-| Role 1 | None | None | 18 hours ✅ |
-| Role 2 | Role 1 at H8 | None (tests later) | **18 hours** ✅ |
-| Role 3 | Role 1 at H18 | None (mocks first) | **18 hours** ✅ |
-| Role 4 | Role 3 at H12 | None (mock data) | **16 hours** ✅ |
-| Role 5 | Everyone | None (docs) | **24 hours** ✅ |
+| Role | Old Approach | New Approach | Key Change |
+|------|-------------|--------------|------------|
+| Role 1 | Works solo on contract (18h) | **Pairs with Role 3** (12h) | Contract done 6h faster ✅ |
+| Role 2 | Waits for Role 1 at H8 | Independent until H12 | Can test real contract earlier ✅ |
+| Role 3 | Builds mocks, integrates later | **Helps Role 1, then builds backend** | No wasted mock code ✅ |
+| Role 4 | Waits for Role 3 | Independent with mock data | Unchanged |
+| Role 5 | Independent docs | Independent docs | Unchanged |
 
-**Result:** First 12 hours are 100% parallelized with ZERO blocking!
+**Result:**
+- Smart contract complete by Hour 12 (instead of Hour 18) - **6 hours faster!**
+- No time wasted building mocks that get thrown away
+- Better code quality through pair programming on critical contract logic
+- Backend API can use real contract from the start
 
 ---
 
@@ -1383,10 +1113,11 @@ Hour 36:     SUBMIT! 🚀
 
 - [ ] Smart contract deployed to TestNet with verified transactions
 - [ ] 100% test coverage with passing CI/CD
-- [ ] Working API with both mock mode (for dev) and real mode (for production)
+- [ ] Working API integrated with real contract (no mocks)
 - [ ] Beautiful, responsive UI that works without backend (mock data)
 - [ ] Full user flow works end-to-end (create → fund → submit → approve)
 - [ ] NFT mints successfully and appears in freelancer wallet
+- [ ] Grouped inner transactions (payment + mint + transfer) work atomically
 - [ ] Complete documentation (README, Architecture, API, FAQ)
 - [ ] 3-minute demo video shows all features
 - [ ] Presentation slides ready (10 slides)
@@ -1398,24 +1129,25 @@ Hour 36:     SUBMIT! 🚀
 
 | **Risk** | **Owner** | **Mitigation** |
 |---------|----------|----------------|
-| Contract bugs lock funds | Role 1 & 2 | Add emergency cancel method, extensive testing, 100% coverage |
+| Contract bugs lock funds | Roles 1 & 3 | Pair programming, extensive testing, 100% coverage, emergency cancel method |
 | NFT opt-in breaks flow | Role 5 | Document opt-in requirement clearly, add frontend guardrails later |
 | IPFS upload fails | Role 3 | Use Pinata's reliable API, add retries, test early |
-| API mocks don't match real contract | Role 3 | Design mocks based on PRD spec, update when contract ready |
-| Frontend doesn't match backend | Role 4 | Use PRD data models, coordinate on Slack |
+| Role 1 & 3 coordination issues | Roles 1 & 3 | Use shared branch, pair programming, frequent commits, clear task division |
+| Frontend doesn't match backend | Role 4 | Use PRD data models, coordinate on Slack, wait for API completion |
 | Merge conflicts at integration | Everyone | Small commits, clear file ownership, communicate often |
 
 ---
 
 ## **💡 Pro Tips for Maximum Efficiency**
 
-1. **Don't wait for anyone** - Build your piece independently first
+1. **Roles 1 & 3: Pair effectively** - One codes, one reviews; switch every 2 hours; commit frequently
 2. **Use the PRD as source of truth** - All data models, endpoints, UI specs are there
-3. **Mock everything** - Roles 2, 3, 4 should build complete features with mocks
+3. **Roles 2, 4, 5: Work independently** - Build complete features without blocking on others
 4. **Test in isolation** - Each piece should work standalone before integration
-5. **Communicate async** - Use Slack/Discord, don't block on sync meetings
+5. **Communicate async** - Use Slack/Discord for updates, don't block on sync meetings
 6. **Commit frequently** - Push every 1-2 hours minimum
 7. **Document as you code** - Don't wait until Hour 32
+8. **Role 3: Reuse contract utilities in backend** - The contract client built in H3-6 becomes the core of your Algorand service
 
 ---
 
