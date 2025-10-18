@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.vscode/**'
+      - '.idea/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  AlgoFreelance-contracts-validate:
+    name: Run AlgoFreelance-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/AlgoFreelance-contracts-ci.yaml
+
+  AlgoFreelance-contracts-release:
+    name: Run AlgoFreelance-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/AlgoFreelance-contracts-cd.yaml
+    needs: AlgoFreelance-contracts-validate
+
+  AlgoFreelance-frontend-validate:
+    name: Run AlgoFreelance-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/AlgoFreelance-frontend-ci.yaml
+
+  AlgoFreelance-frontend-release:
+    name: Run AlgoFreelance-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/AlgoFreelance-frontend-cd.yaml
+    needs: AlgoFreelance-frontend-validate

@@ -1,0 +1,14 @@
+name: Pull Request validation
+
+on: [pull_request]
+
+
+jobs:
+  AlgoFreelance-contracts-ci:
+    name: Run AlgoFreelance-contracts validation
+    uses: ./.github/workflows/AlgoFreelance-contracts-ci.yaml
+
+  AlgoFreelance-frontend-ci:
+    name: Run AlgoFreelance-frontend validation
+    uses: ./.github/workflows/AlgoFreelance-frontend-ci.yaml
+
