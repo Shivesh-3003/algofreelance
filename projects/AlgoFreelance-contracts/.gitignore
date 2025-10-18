@@ -178,3 +178,9 @@ node_modules
 debug_traces/
 .algokit/static-analysis/ # Replace with .algokit/static-analysis/tealer/ to enable snapshot checks in CI
 .algokit/sources
+
+# Test account files (sensitive)
+.accounts.json
+.accounts.private
+generate_accounts.py
+fund_localnet_accounts.py
