@@ -1,0 +1,9 @@
+arrange:
+  - index.md
+  - get-started
+  - get-details
+  - sdks
+  - rest-apis
+  - clis
+  - run-a-node
+  - about.md

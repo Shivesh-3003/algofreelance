@@ -1,0 +1,22 @@
+title: Get details
+
+arrange:
+    - index.md
+    - algokit
+    - accounts
+    - transactions
+    - atomic_transfers.md
+    - atc.md
+    - asa.md
+    - dapps
+    - indexer.md
+    - conduit.md    
+    - stateproofs
+    - encoding.md
+    - parameter_tables.md
+    - algorand-networks
+    - algorand_consensus.md
+    - technical_faq.md
+    - useful_resources.md
+    - ethereum_to_algorand.md
+    - crust.md
