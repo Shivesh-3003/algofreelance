@@ -1,17 +1,27 @@
-from algopy import ARC4Contract, String, UInt64, Bytes, Global, Txn, itxn, Asset, Local, arc4, op, gtxn
-from algopy.arc4 import abimethod
+from algopy import ARC4Contract, String, UInt64, Bytes, Global, Txn, itxn, Asset, arc4, op, gtxn
+from typing import NamedTuple
+
+class JobDetails(NamedTuple):
+    client_address: arc4.Address
+    freelancer_address: arc4.Address
+    escrow_amount: arc4.UInt64
+    job_status: arc4.UInt64
+    work_hash: arc4.String
+    job_title: arc4.String
+    created_at: arc4.UInt64
+    app_id: arc4.UInt64
 
 class AlgoFreelance(ARC4Contract):
     def __init__(self) -> None:
-        self.client_address = Global.bytes_("client_address")
-        self.freelancer_address = Global.bytes_("freelancer_address")
-        self.escrow_amount = Global.uint64("escrow_amount")
-        self.job_status = Global.uint64("job_status")
-        self.work_hash = Global.bytes_("work_hash")
-        self.job_title = Global.bytes_("job_title")
-        self.created_at = Global.uint64("created_at")
+        self.client_address = Global.bytes_variable()
+        self.freelancer_address = Global.bytes_variable()
+        self.escrow_amount = Global.uint64_variable()
+        self.job_status = Global.uint64_variable()
+        self.work_hash = Global.bytes_variable()
+        self.job_title = Global.bytes_variable()
+        self.created_at = Global.uint64_variable()
 
-    @abimethod
+    @arc4.abimethod
     def initialize(
         self,
         client_address: arc4.Address,
@@ -29,7 +39,7 @@ class AlgoFreelance(ARC4Contract):
         self.created_at.set(Txn.block_timestamp)
         self.job_status.set(UInt64(1)) # Status: Created
 
-    @abimethod
+    @arc4.abimethod
     def fund(self) -> None:
         assert self.job_status.get() == 1, "Job not in Created status"
         assert Txn.sender == self.client_address.get(), "Only client can fund"
@@ -40,7 +50,7 @@ class AlgoFreelance(ARC4Contract):
 
         self.job_status.set(UInt64(2)) # Status: Funded
 
-    @abimethod
+    @arc4.abimethod
     def submit_work(self, ipfs_hash: arc4.String) -> None:
         assert self.job_status.get() == 2, "Job not in Funded status"
         assert Txn.sender == self.freelancer_address.get(), "Only freelancer can submit work"
@@ -48,7 +58,7 @@ class AlgoFreelance(ARC4Contract):
         self.work_hash.set(ipfs_hash.get())
         self.job_status.set(UInt64(3)) # Status: Submitted
 
-    @abimethod
+    @arc4.abimethod
     def approve_work(self) -> None:
         assert self.job_status.get() == 3, "Job not in Submitted status"
         assert Txn.sender == self.client_address.get(), "Only client can approve work"
@@ -81,7 +91,7 @@ class AlgoFreelance(ARC4Contract):
 
         self.job_status.set(UInt64(4)) # Status: Completed
 
-    @abimethod
+    @arc4.abimethod
     def cancel(self) -> None:
         assert self.job_status.get() == 1 or self.job_status.get() == 2, "Job cannot be canceled in its current state"
         assert Txn.sender == self.client_address.get(), "Only client can cancel"
@@ -92,26 +102,15 @@ class AlgoFreelance(ARC4Contract):
             close_remainder_to=self.client_address.get(),
         ).submit()
 
-    @abimethod(allow_actions=["read_only"])
-    def get_job_details(self) -> arc4.Tuple[
-        arc4.Address,
-        arc4.Address,
-        arc4.UInt64,
-        arc4.UInt64,
-        arc4.String,
-        arc4.String,
-        arc4.UInt64,
-    ]:
-        return arc4.Tuple(
-            arc4.arc4_from_bytes(self.client_address.get()),
-            arc4.arc4_from_bytes(self.freelancer_address.get()),
-            arc4.arc4_from_uint64(self.escrow_amount.get()),
-            arc4.arc4_from_uint64(self.job_status.get()),
-            arc4.arc4_from_bytes(self.work_hash.get()),
-            arc4.arc4_from_bytes(self.job_title.get()),
-            arc4.arc4_from_uint64(self.created_at.get()),
+    @arc4.abimethod(readonly=True)
+    def get_job_details(self) -> JobDetails:
+        return JobDetails(
+            client_address=arc4.arc4_from_bytes(self.client_address.get()),
+            freelancer_address=arc4.arc4_from_bytes(self.freelancer_address.get()),
+            escrow_amount=arc4.arc4_from_uint64(self.escrow_amount.get()),
+            job_status=arc4.arc4_from_uint64(self.job_status.get()),
+            work_hash=arc4.arc4_from_bytes(self.work_hash.get()),
+            job_title=arc4.arc4_from_bytes(self.job_title.get()),
+            created_at=arc4.arc4_from_uint64(self.created_at.get()),
+            app_id=arc4.arc4_from_uint64(Global.current_application_id),
         )
-    
-
-
-    #sometimes clients want to change the details of the job (so maybe we need to allow for changes in job details)
