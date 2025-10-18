@@ -56,8 +56,8 @@ def test_fund(context: AlgopyTestContext, contract: AlgoFreelance) -> None:
 
     # Act
     with context.set_sender(client):
-        payment_txn = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
-        contract.fund(group_transaction=payment_txn)
+        payment = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
+        context.group().add_method_call(contract.fund, group_transaction=payment).execute()
 
     # Assert
     assert contract.job_status.get() == 2
@@ -79,8 +79,8 @@ def test_submit_work(context: AlgopyTestContext, contract: AlgoFreelance) -> Non
     )
 
     with context.set_sender(client):
-        payment_txn = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
-        contract.fund(group_transaction=payment_txn)
+        payment = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
+        context.group().add_method_call(contract.fund, group_transaction=payment).execute()
 
     # Act
     with context.set_sender(freelancer):
@@ -109,8 +109,8 @@ def test_approve_work(context: AlgopyTestContext, contract: AlgoFreelance) -> No
     )
 
     with context.set_sender(client):
-        payment_txn = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
-        contract.fund(group_transaction=payment_txn)
+        payment = context.any.payment_transaction(receiver=contract.app_address, amount=escrow_amount)
+        context.group().add_method_call(contract.fund, group_transaction=payment).execute()
 
     with context.set_sender(freelancer):
         contract.submit_work(ipfs_hash=arc4.String(ipfs_hash))
