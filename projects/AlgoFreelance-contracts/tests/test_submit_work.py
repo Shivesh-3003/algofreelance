@@ -19,8 +19,8 @@ Workflow Context:
 
 import pytest
 
-
 # ==================== FIXTURES ====================
+
 
 @pytest.fixture
 def valid_ipfs_hash_cidv0():
@@ -79,7 +79,10 @@ def funded_contract_state(client_account, freelancer_account):
 
 # ==================== SUCCESS CASES ====================
 
-def test_submit_work_success(freelancer_account, valid_ipfs_hash_cidv0, funded_contract_state):
+
+def test_submit_work_success(
+    freelancer_account, valid_ipfs_hash_cidv0, funded_contract_state
+):
     """
     Test that submit_work() successfully stores hash and updates status
 
@@ -172,6 +175,7 @@ def test_submit_work_accepts_cidv1_hash(valid_ipfs_hash_cidv1):
 
 
 # ==================== VALIDATION CASES ====================
+
 
 def test_submit_work_wrong_status_created():
     """
@@ -277,6 +281,7 @@ def test_submit_work_unauthorized_random_account():
 
 # ==================== IPFS HASH VALIDATION CASES ====================
 
+
 def test_submit_work_invalid_hash_too_short():
     """
     Verify submit_work() rejects IPFS hashes < 46 bytes
@@ -363,6 +368,7 @@ def test_submit_work_empty_hash():
 
 
 # ==================== EDGE CASES ====================
+
 
 def test_submit_work_hash_at_min_length():
     """

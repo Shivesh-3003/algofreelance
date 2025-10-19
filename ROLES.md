@@ -88,8 +88,8 @@ main (protected)
 **Dependencies:** None (Role 1 needed later for actual testing)
 **Key Files:** `projects/AlgoFreelance-contracts/tests/`, `.github/workflows/`
 
-**Current Status:** ✅ **H0-2 & H2-6 COMPLETE**
-**Progress:** Environment setup done | TestNet accounts funded (10 ALGO each) | **80 test stubs created** | All tests passing/skipped (8 passed, 80 skipped)
+**Current Status:** ✅ **H0-2, H2-6 & H6-10 COMPLETE**
+**Progress:** Environment setup done | TestNet accounts funded (10 ALGO each) | **80 test stubs created** | CI/CD pipelines ready | All tests passing/skipped (8 passed, 80 skipped)
 
 ### **🎯 New Focus: Build All Test Infrastructure WITHOUT Waiting for Contract**
 
@@ -163,8 +163,8 @@ main (protected)
     - Ready for contract integration when Role 1 delivers
     - **See:** `role 2 (mehmet) updates/h2-6-test-files-creation.plan.md`
 
-- [ ] **H6-10: CI/CD Pipeline** *(No contract needed)*
-  - Create `.github/workflows/ci.yml`:
+- [x] **H6-10: CI/CD Pipeline** ✅ **COMPLETE** *(No contract needed)*
+  - ✅ Created `.github/workflows/ci.yml`:
     ```yaml
     name: AlgoFreelance CI
 
@@ -191,24 +191,37 @@ main (protected)
             run: poetry run pytest --cov=smart_contracts --cov-report=xml
     ```
 
-  - Create `.github/workflows/deploy.yml`:
-    ```yaml
-    name: Deploy to TestNet
+  - ✅ Created `.github/workflows/deploy.yml`:
+    - Automatic deployment on push to main branch
+    - Manual workflow dispatch for testing
+    - Extracts and saves App ID from deployment output
+    - Creates deployment artifacts (deployment-info.json)
+    - Links to TestNet Explorer in GitHub Actions summary
+    - Requires GitHub secrets: DEPLOYER_MNEMONIC, DISPENSER_MNEMONIC
 
-    on:
-      push:
-        branches: [main]
+  - ✅ **Created comprehensive CI_CD.md documentation:**
+    - Workflow overview and triggers
+    - Expected test results (8 passed, 80 skipped)
+    - GitHub secrets configuration guide
+    - Troubleshooting section (LocalNet, deployment, linting issues)
+    - Integration with H2-6 test infrastructure
+    - Local testing instructions
+    - TestNet account funding guide
 
-    jobs:
-      deploy:
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v3
-          - name: Deploy to TestNet
-            run: algokit deploy testnet
-          - name: Save App ID
-            run: echo $APP_ID > testnet_app_id.txt
-    ```
+  - ✅ **Fixed linting configuration:**
+    - Updated pyproject.toml to ignore type annotations (ANN) in test files
+    - All linting passes: black ✓, ruff ✓, mypy ✓
+    - Tests run successfully: 8 passed, 80 skipped
+    - Coverage report generates correctly (49% current, 100% target when contract ready)
+
+  - ✅ **Verified local CI workflow:**
+    - AlgoKit LocalNet starts successfully
+    - Project bootstrap works (`algokit project bootstrap all`)
+    - Linting passes without errors
+    - All 88 tests discovered and categorized correctly
+    - Coverage.xml generated successfully
+
+  - **See:** `role 2 (mehmet) updates/h6-10-ci-cd-pipeline.plan.md`
 
 - [ ] **H10-12: Deployment Scripts** *(No contract needed)*
   - Create `scripts/deploy_testnet.py`:

@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 # define deployment behaviour based on supplied app spec
 def deploy() -> None:
     from smart_contracts.artifacts.algo_freelance.algo_freelance_client import (
-        HelloArgs,
         AlgoFreelanceFactory,
+        HelloArgs,
     )
 
     algorand = algokit_utils.AlgorandClient.from_environment()

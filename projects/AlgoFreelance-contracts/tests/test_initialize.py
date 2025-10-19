@@ -20,11 +20,12 @@ Global State Schema (PRD §6.1):
 - created_at: UInt64 (Unix timestamp)
 """
 
-import pytest
 import time
 
+import pytest
 
 # ==================== FIXTURES ====================
+
 
 @pytest.fixture
 def valid_init_params(client_account, freelancer_account):
@@ -53,45 +54,59 @@ def current_timestamp():
 
 # ==================== SUCCESS CASES ====================
 
-def test_initialize_success(client_account, freelancer_account, valid_init_params):
+
+import pytest
+from algorand_python_testing import AlgorandTestAutomation, Arc4Account
+from smart_contracts.algo_freelance.contract import AlgoFreelance
+
+
+@pytest.fixture
+def valid_init_params(client_account: Arc4Account, freelancer_account: Arc4Account):
     """
-    Test that initialize method sets all global state variables correctly
-
-    Expected behavior (PRD §6.2):
-    1. Stores client_address from parameters
-    2. Stores freelancer_address from parameters
-    3. Stores escrow_amount from parameters
-    4. Stores job_title from parameters
-    5. Sets job_status = 0 (Created)
-    6. Records created_at timestamp
-    7. Only succeeds if called by contract creator
-
-    When Role 1 delivers contract:
-    - Deploy contract with deployer account
-    - Call initialize() with valid_init_params
-    - Read global state and verify all values match
+    Valid initialization parameters for testing.
     """
-    # TODO: Replace with actual contract when Role 1 delivers
-    # For now: Document expected behavior
-
-    # Expected global state after initialize:
-    expected_state = {
-        "client_address": valid_init_params["client_address"],
-        "freelancer_address": valid_init_params["freelancer_address"],
-        "escrow_amount": valid_init_params["escrow_amount"],
-        "job_title": valid_init_params["job_title"],
-        "job_status": 0,  # Created
-        "created_at": pytest.approx(int(time.time()), abs=5),  # Within 5 seconds
-        "work_hash": b"",  # Empty until work submitted
+    return {
+        "client_address": client_account.address,
+        "freelancer_address": freelancer_account.address,
+        "escrow_amount": 5_000_000,  # 5 ALGO in microALGOs
+        "job_title": "Logo Design for SaaS Startup",
     }
 
-    # Actual implementation will:
-    # 1. factory.deploy() contract
-    # 2. client.send.initialize(**valid_init_params)
-    # 3. Read global state via client.get_global_state()
-    # 4. Assert all values match expected_state
 
-    pytest.skip("Waiting for contract from Role 1")
+def test_initialize_success(
+    algorand: AlgorandTestAutomation,
+    creator: Arc4Account,
+    client_account: Arc4Account,
+    freelancer_account: Arc4Account,
+    valid_init_params: dict,
+):
+    """
+    Test that initialize method sets all global state variables correctly.
+    """
+    # 1. Deploy the contract
+    app_client = algorand.clients.arc4_client_from_class(
+        creator,
+        contract_class=AlgoFreelance,
+    )
+
+    # 2. Call the initialize method
+    app_client.compose_call(
+        call_abi_method="initialize",
+        transaction_parameters=valid_init_params,
+    )
+
+    # 3. Read the global state
+    global_state = app_client.get_global_state()
+
+    # 4. Assert all values match
+    assert global_state["client_address"] == client_account.address.as_bytes()
+    assert global_state["freelancer_address"] == freelancer_account.address.as_bytes()
+    assert global_state["escrow_amount"] == valid_init_params["escrow_amount"]
+    assert global_state["job_title"] == valid_init_params["job_title"].encode("utf-8")
+    assert global_state["job_status"] == 0  # Created
+    assert "created_at" in global_state
+    assert global_state["created_at"] > 0
+    assert global_state.get("work_hash") is None  # Not set yet
 
 
 def test_initialize_sets_client_address(valid_init_params):
@@ -191,6 +206,7 @@ def test_initialize_records_timestamp(current_timestamp):
 
 # ==================== VALIDATION CASES ====================
 
+
 def test_initialize_invalid_amount():
     """
     Verify initialize() rejects escrow_amount <= 0
@@ -251,6 +267,7 @@ def test_initialize_unauthorized():
 
 
 # ==================== ADDITIONAL TEST IDEAS ====================
+
 
 def test_initialize_sets_job_title():
     """

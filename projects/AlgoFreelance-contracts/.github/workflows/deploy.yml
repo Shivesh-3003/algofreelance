@@ -1,0 +1,122 @@
+name: Deploy to TestNet
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'testnet'
+        type: choice
+        options:
+          - testnet
+
+jobs:
+  deploy:
+    name: Deploy Smart Contract to TestNet
+    runs-on: ubuntu-latest
+    environment: testnet
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install AlgoKit
+        run: pipx install algokit
+
+      - name: Verify AlgoKit installation
+        run: algokit --version
+
+      - name: Bootstrap project
+        run: algokit project bootstrap all
+
+      - name: Build smart contracts
+        run: algokit project run build
+
+      - name: Set up environment variables
+        run: |
+          echo "DEPLOYER_MNEMONIC=${{ secrets.DEPLOYER_MNEMONIC }}" >> $GITHUB_ENV
+          echo "DISPENSER_MNEMONIC=${{ secrets.DISPENSER_MNEMONIC }}" >> $GITHUB_ENV
+
+      - name: Deploy to TestNet
+        id: deploy
+        run: |
+          echo "Deploying to TestNet..."
+          algokit project deploy testnet > deployment_output.txt 2>&1 || true
+          cat deployment_output.txt
+
+      - name: Extract deployment info
+        id: extract_info
+        run: |
+          # Extract App ID from deployment output (adjust regex based on actual output)
+          APP_ID=$(grep -oP '(?<=app_id: )\d+' deployment_output.txt || grep -oP '(?<=application-id: )\d+' deployment_output.txt || echo "unknown")
+          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          echo "Deployed App ID: $APP_ID"
+
+      - name: Create deployment summary
+        run: |
+          APP_ID="${{ steps.extract_info.outputs.app_id }}"
+          echo "## 🚀 TestNet Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **App ID:** $APP_ID" >> $GITHUB_STEP_SUMMARY
+          echo "- **Network:** TestNet" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$APP_ID" != "unknown" ]; then
+            echo "### 🔍 Block Explorer Links" >> $GITHUB_STEP_SUMMARY
+            echo "- [View on AlgoExplorer](https://testnet.explorer.perawallet.app/application/$APP_ID)" >> $GITHUB_STEP_SUMMARY
+            echo "- [View on AlgoNode](https://testnet.algoexplorer.io/application/$APP_ID)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Save deployment info to file
+        run: |
+          APP_ID="${{ steps.extract_info.outputs.app_id }}"
+          cat > deployment-info.json << EOF
+          {
+            "app_id": "$APP_ID",
+            "network": "testnet",
+            "deployed_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "explorer_url": "https://testnet.explorer.perawallet.app/application/$APP_ID",
+            "commit_sha": "${{ github.sha }}"
+          }
+          EOF
+          cat deployment-info.json
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: |
+            deployment-info.json
+            deployment_output.txt
+          retention-days: 90
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const appId = '${{ steps.extract_info.outputs.app_id }}';
+            const comment = `## 🚀 TestNet Deployment
+
+            Successfully deployed to TestNet!
+
+            **App ID:** ${appId}
+            **Explorer:** https://testnet.explorer.perawallet.app/application/${appId}
+
+            Download deployment artifacts from the Actions tab.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -28,8 +28,8 @@ Invalid transitions (tested here):
 
 import pytest
 
-
 # ==================== DOUBLE OPERATION TESTS ====================
+
 
 def test_double_approval():
     """
@@ -127,6 +127,7 @@ def test_double_initialization():
 
 # ==================== INVALID STATE TRANSITIONS ====================
 
+
 def test_state_transition_created_to_submitted():
     """
     Verify invalid transition: Created (0) → Submitted (2)
@@ -212,6 +213,7 @@ def test_state_transition_backwards():
 
 # ==================== MINIMUM BALANCE REQUIREMENTS ====================
 
+
 def test_minimum_balance_requirements():
     """
     Test contract minimum balance handling (PRD §6.3)
@@ -271,6 +273,7 @@ def test_contract_balance_after_approval():
 
 
 # ==================== BOUNDARY VALUE TESTS ====================
+
 
 def test_empty_job_title():
     """
@@ -398,6 +401,7 @@ def test_nft_name_max_length():
 
 # ==================== SPECIAL CHARACTERS & UNICODE ====================
 
+
 def test_special_characters_in_title():
     """
     Test job_title with special characters
@@ -467,6 +471,7 @@ def test_unicode_in_ipfs_hash():
 
 # ==================== ACCOUNT EDGE CASES ====================
 
+
 def test_same_client_and_freelancer():
     """
     Edge case: Can client and freelancer be the same account?
@@ -531,6 +536,7 @@ def test_invalid_algorand_address_format():
 
 
 # ==================== MULTI-CONTRACT TESTS ====================
+
 
 def test_multiple_contracts_independent():
     """
@@ -602,6 +608,7 @@ def test_same_client_multiple_jobs():
 
 # ==================== CONCURRENCY & RACE CONDITIONS ====================
 
+
 def test_concurrent_approvals_different_contracts():
     """
     Test approving multiple contracts in quick succession
@@ -620,6 +627,7 @@ def test_concurrent_approvals_different_contracts():
 
 
 # ==================== SECURITY TESTS ====================
+
 
 def test_reentrancy_protection():
     """

@@ -30,8 +30,8 @@ Workflow Context:
 
 import pytest
 
-
 # ==================== FIXTURES ====================
+
 
 @pytest.fixture
 def submitted_work_state(client_account, freelancer_account):
@@ -89,6 +89,7 @@ def expected_nft_metadata(submitted_work_state):
 
 
 # ==================== INNER TRANSACTION TESTS ====================
+
 
 def test_approve_work_executes_all_three_inner_transactions():
     """
@@ -260,6 +261,7 @@ def test_approve_work_inner_transactions_grouped():
 
 # ==================== ATOMICITY TESTS ====================
 
+
 def test_approve_work_atomicity_freelancer_not_opted_in():
     """
     ⭐ CRITICAL: Test atomicity when freelancer hasn't opted into NFT
@@ -331,6 +333,7 @@ def test_approve_work_atomicity_insufficient_contract_balance():
 
 # ==================== NFT IMMUTABILITY TESTS ====================
 
+
 def test_nft_immutability_no_manager():
     """
     ⭐ CRITICAL: Verify NFT has NO manager address (immutable)
@@ -393,6 +396,7 @@ def test_nft_immutability_no_reserve():
 
 
 # ==================== NFT METADATA TESTS ====================
+
 
 def test_nft_metadata_name_includes_job_title():
     """
@@ -472,6 +476,7 @@ def test_nft_metadata_decimals_is_zero():
 
 # ==================== STATE UPDATE TESTS ====================
 
+
 def test_approve_work_updates_status_to_completed():
     """
     Verify approve_work() updates job_status to 3 (Completed)
@@ -518,6 +523,7 @@ def test_approve_work_preserves_other_state():
 
 # ==================== AUTHORIZATION TESTS ====================
 
+
 def test_approve_work_unauthorized_freelancer_cannot_approve():
     """
     Verify approve_work() rejects calls from freelancer
@@ -548,6 +554,7 @@ def test_approve_work_unauthorized_random_account():
 
 
 # ==================== STATUS VALIDATION TESTS ====================
+
 
 def test_approve_work_wrong_status_created():
     """
@@ -596,6 +603,7 @@ def test_approve_work_wrong_status_already_completed():
 
 
 # ==================== INTEGRATION TESTS ====================
+
 
 def test_approve_work_full_lifecycle():
     """
