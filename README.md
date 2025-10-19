@@ -11,18 +11,23 @@ This creates a verifiable, portable, on-chain reputation for freelancers, secure
 ---
 
 ## 📹 Demo & Code Walkthrough
-
-_[Youtube Link]_
-
+[![Watch the video](https://i.sstatic.net/Vp2cE.png)](https://youtu.be/8hsrgwIzQvk)
 ---
 
 ## 🖼️ Application Screenshots
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 01" src="https://github.com/user-attachments/assets/64647620-181d-4775-b352-303427a2aef8" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 08" src="https://github.com/user-attachments/assets/a79b1af1-e608-4fc7-8ffc-f43ea600855b" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 39" src="https://github.com/user-attachments/assets/5a123d6b-3a17-457e-b755-0fcf93bfe639" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 50" src="https://github.com/user-attachments/assets/582eb85d-759c-4300-91bb-397958f1828b" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 48" src="https://github.com/user-attachments/assets/6b57a860-dffd-4a1a-90f1-7ea7ca5a8e13" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 36 59" src="https://github.com/user-attachments/assets/c3fac9bd-00f5-4c3b-95c0-27ee5e3e0ba0" />
+<img width="1470" height="956" alt="Screenshot 2025-10-19 at 12 37 06" src="https://github.com/user-attachments/assets/9aabdc64-fe88-492c-ab2f-5e55abbcca56" />
 
-_[Screenshot 1: Job Creation Form]_
-_[Screenshot 2: Job Details Page (Awaiting Funding / Work Submission)]_
-_[Screenshot 3: Freelancer's Work Submission Modal (with IPFS upload)]_
-_[Screenshot 4: Client's View (with "Approve Work" button)]_
-_[Screenshot 5: Freelancer's NFT Portfolio (showing the newly minted POW NFT)]_
+
+
+
+
+
 
 ---
 
