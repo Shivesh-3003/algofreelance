@@ -1,9 +1,11 @@
 import { Briefcase, Shield, Award, Zap, ArrowRight, CheckCircle, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom'
+import ConnectWallet from './components/ConnectWallet';
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openConnectWalletModal, setOpenConnectWalletModal] = useState(false);
 
   const features = [
     {
@@ -63,11 +65,12 @@ export default function HomePage() {
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             
-            <Link to="/account">
-              <button className="hidden md:block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all hover:scale-105 border border-blue-400/20">
-                Sign In
-              </button>
-            </Link>
+            <button 
+              onClick={() => setOpenConnectWalletModal(true)}
+              className="hidden md:block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all hover:scale-105 border border-blue-400/20"
+            >
+              Sign In
+            </button>
           </div>
           
           {/* Mobile Menu */}
@@ -76,7 +79,10 @@ export default function HomePage() {
               <a href="#features" className="block text-gray-300 hover:text-blue-400 py-2">Features</a>
               <a href="#how-it-works" className="block text-gray-300 hover:text-blue-400 py-2">How It Works</a>
               <a href="#portfolio" className="block text-gray-300 hover:text-blue-400 py-2">Portfolio</a>
-              <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg mt-2 border border-blue-400/20">
+              <button 
+                onClick={() => setOpenConnectWalletModal(true)}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg mt-2 border border-blue-400/20"
+              >
                 Connect Wallet
               </button>
             </div>
@@ -237,6 +243,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      <ConnectWallet openModal={openConnectWalletModal} closeModal={() => setOpenConnectWalletModal(false)} />
     </div>
   );
 }
