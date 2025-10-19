@@ -74,17 +74,6 @@ contracts: list[SmartContract] = [
 
 # -------------------------- Build Logic -------------------------- #
 
-deployment_extension = "py"
-
-
-def _get_output_path(output_dir: Path, deployment_extension: str) -> Path:
-    """Constructs the output path for the generated client file."""
-    return output_dir / Path(
-        "{contract_name}"
-        + ("_client" if deployment_extension == "py" else "Client")
-        + f".{deployment_extension}"
-    )
-
 
 def build(output_dir: Path, contract_path: Path) -> Path:
     """
@@ -127,31 +116,56 @@ def build(output_dir: Path, contract_path: Path) -> Path:
             "No '*.arc56.json' file found (likely a logic signature being compiled). Skipping client generation."
         )
     else:
+        # Generate Python client
+        py_client_output_path = output_dir / f"{output_dir.name}_client.py"
         for file_name in app_spec_file_names:
             client_file = file_name
-            print(file_name)
-            generate_result = subprocess.run(
+            generate_py_result = subprocess.run(
                 [
                     "algokit",
                     "generate",
                     "client",
-                    str(output_dir),
+                    str(output_dir / file_name),
+                    "--language",
+                    "python",
                     "--output",
-                    str(_get_output_path(output_dir, deployment_extension)),
+                    str(py_client_output_path),
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-            if generate_result.returncode:
-                if "No such command" in generate_result.stdout:
-                    raise Exception(
-                        "Could not generate typed client, requires AlgoKit 2.0.0 or later. Please update AlgoKit"
-                    )
-                else:
-                    raise Exception(
-                        f"Could not generate typed client:\n{generate_result.stdout}"
-                    )
+            if generate_py_result.returncode:
+                raise Exception(
+                    f"Could not generate python typed client:\n{generate_py_result.stdout}"
+                )
+
+        # Generate TypeScript client
+        ts_client_dir = Path(__file__).parent.parent / "tests-ts" / "contracts"
+        ts_client_dir.mkdir(exist_ok=True, parents=True)
+        ts_client_output_path = ts_client_dir / f"{output_dir.name}Client.ts"
+        for file_name in app_spec_file_names:
+            client_file = file_name
+            generate_ts_result = subprocess.run(
+                [
+                    "algokit",
+                    "generate",
+                    "client",
+                    str(output_dir / file_name),
+                    "--language",
+                    "typescript",
+                    "--output",
+                    str(ts_client_output_path),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            if generate_ts_result.returncode:
+                raise Exception(
+                    f"Could not generate typescript typed client:\n{generate_ts_result.stdout}"
+                )
+
     if client_file:
         return output_dir / client_file
     return output_dir

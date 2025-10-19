@@ -1,0 +1,22 @@
+# AlgoFreelance Backend Dependencies
+# Updated for algopy integration
+
+# Algorand SDK and utilities
+algokit-utils>=3.0.0
+algosdk>=2.6.0
+
+# FastAPI framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Environment configuration
+python-dotenv>=1.0.0
+
+# HTTP client for external APIs
+httpx>=0.25.0
+
+# Will add pinata integration later (H14-16)
+

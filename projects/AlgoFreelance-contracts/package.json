@@ -1,0 +1,23 @@
+{
+  "name": "algofreelance-contracts",
+  "version": "1.0.0",
+  "description": "This project has been generated using AlgoKit. See below for default getting started instructions.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@algorandfoundation/algokit-utils": "^9.1.2",
+    "@algorandfoundation/algorand-typescript-testing": "^1.0.0-beta.35",
+    "algosdk": "^3.5.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

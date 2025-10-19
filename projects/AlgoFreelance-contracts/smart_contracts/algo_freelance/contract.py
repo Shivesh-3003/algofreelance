@@ -59,7 +59,7 @@ class AlgoFreelance(ARC4Contract):
 
         # Verify this app call is grouped with a payment transaction to this contract
         assert Global.group_size == UInt64(2), "Must be grouped with a payment transaction"
-        payment_txn = gtxn.PaymentTransaction(1)
+        payment_txn = gtxn.PaymentTransaction(0)  # Payment is at index 0, fund call is at index 1
         assert payment_txn.receiver == Global.current_application_address, "Payment must be to the contract"
         assert payment_txn.amount == self.escrow_amount.value.native, "Payment amount must match escrow amount"
 

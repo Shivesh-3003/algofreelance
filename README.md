@@ -1,55 +1,113 @@
-# AlgoFreelance
+# AlgoFreelance: Decentralized Escrow with Proof-of-Work NFTs
 
-This starter full stack project has been generated using AlgoKit. See below for default getting started instructions.
+AlgoFreelance replaces centralized freelance platforms with an autonomous Algorand smart contract. It trustlessly escrows client payments and, upon job completion, **atomically executes a grouped inner transaction** that:
 
-## Setup
+1.  **Pays** the freelancer in ALGO.
+2.  **Mints** a unique, immutable Proof-of-Work (POW) NFT certificate.
+3.  **Transfers** the POW NFT directly to the freelancer's wallet.
 
-### Initial setup
-1. Clone this repository to your local machine.
-2. Ensure [Docker](https://www.docker.com/) is installed and operational. Then, install `AlgoKit` following this [guide](https://github.com/algorandfoundation/algokit-cli#install).
-3. Run `algokit project bootstrap all` in the project directory. This command sets up your environment by installing necessary dependencies, setting up a Python virtual environment, and preparing your `.env` file.
-4. In the case of a smart contract project, execute `algokit generate env-file -a target_network localnet` from the `AlgoFreelance-contracts` directory to create a `.env.localnet` file with default configuration for `localnet`.
-5. To build your project, execute `algokit project run build`. This compiles your project and prepares it for running.
-6. For project-specific instructions, refer to the READMEs of the child projects:
-   - Smart Contracts: [AlgoFreelance-contracts](projects/AlgoFreelance-contracts/README.md)
-   - Frontend Application: [AlgoFreelance-frontend](projects/AlgoFreelance-frontend/README.md)
+This creates a verifiable, portable, on-chain reputation for freelancers, secured by Algorand, with zero platform fees and instant settlement.
 
-> This project is structured as a monorepo, refer to the [documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/project/run.md) to learn more about custom command orchestration via `algokit project run`.
+---
 
-### Subsequently
+## 📹 Demo & Code Walkthrough
 
-1. If you update to the latest source code and there are new dependencies, you will need to run `algokit project bootstrap all` again.
-2. Follow step 3 above.
+_[Youtube Link]_
 
-### Continuous Integration / Continuous Deployment (CI/CD)
+---
 
-This project uses [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions) to define CI/CD workflows, which are located in the [`.github/workflows`](./.github/workflows) folder. You can configure these actions to suit your project's needs, including CI checks, audits, linting, type checking, testing, and deployments to TestNet.
+## 🖼️ Application Screenshots
 
-For pushes to `main` branch, after the above checks pass, the following deployment actions are performed:
-  - The smart contract(s) are deployed to TestNet using [AlgoNode](https://algonode.io).
-  - The frontend application is deployed to a provider of your choice (Netlify, Vercel, etc.). See [frontend README](frontend/README.md) for more information.
+_[Screenshot 1: Job Creation Form]_
+_[Screenshot 2: Job Details Page (Awaiting Funding / Work Submission)]_
+_[Screenshot 3: Freelancer's Work Submission Modal (with IPFS upload)]_
+_[Screenshot 4: Client's View (with "Approve Work" button)]_
+_[Screenshot 5: Freelancer's NFT Portfolio (showing the newly minted POW NFT)]_
 
-> Please note deployment of smart contracts is done via `algokit deploy` command which can be invoked both via CI as seen on this project, or locally. For more information on how to use `algokit deploy` please see [AlgoKit documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/deploy.md).
+---
 
-## Tools
+## 🛠 Smart Contract: `AlgoFreelance (contract.py)`
 
-This project makes use of Python and React to build Algorand smart contracts and to provide a base project configuration to develop frontends for your Algorand dApps and interactions with smart contracts. The following tools are in use:
+The entire system is managed by a single, stateful Algorand smart contract (`AlgoFreelance`). This contract acts as the autonomous escrow agent, vault, and NFT minter.
 
-- Algorand, AlgoKit, and AlgoKit Utils
-- Python dependencies including Poetry, Black, Ruff or Flake8, mypy, pytest, and pip-audit
-- React and related dependencies including AlgoKit Utils, Tailwind CSS, daisyUI, use-wallet, npm, jest, playwright, Prettier, ESLint, and Github Actions workflows for build validation
+**Purpose:**
+To manage the full lifecycle of a single freelance job, from creation and funding to final payment and minting of a Proof-of-Work certificate.
 
-### VS Code
+### Key ABI Methods
 
-It has also been configured to have a productive dev experience out of the box in [VS Code](https://code.visualstudio.com/), see the [backend .vscode](./backend/.vscode) and [frontend .vscode](./frontend/.vscode) folders for more details.
+- **`initialize(...)`**
 
-## Integrating with smart contracts and application clients
+  - **Who:** Called by the backend upon job creation.
+  - **What:** Sets the initial state of the contract: `client_address`, `freelancer_address`, `escrow_amount`, and `job_title`.
+  - **Status:** `0` (Created)
 
-Refer to the [AlgoFreelance-contracts](projects/AlgoFreelance-contracts/README.md) folder for overview of working with smart contracts, [projects/AlgoFreelance-frontend](projects/AlgoFreelance-frontend/README.md) for overview of the React project and the [projects/AlgoFreelance-frontend/contracts](projects/AlgoFreelance-frontend/src/contracts/README.md) folder for README on adding new smart contracts from backend as application clients on your frontend. The templates provided in these folders will help you get started.
-When you compile and generate smart contract artifacts, your frontend component will automatically generate typescript application clients from smart contract artifacts and move them to `frontend/src/contracts` folder, see [`generate:app-clients` in package.json](projects/AlgoFreelance-frontend/package.json). Afterwards, you are free to import and use them in your frontend application.
+- **`fund()`**
 
-The frontend starter also provides an example of interactions with your AlgoFreelanceClient in [`AppCalls.tsx`](projects/AlgoFreelance-frontend/src/components/AppCalls.tsx) component by default.
+  - **Who:** Called by the **Client**.
+  - **What:** This method must be called in an atomic group with a payment transaction from the client to the contract. The contract verifies the payment amount matches the `escrow_amount` before proceeding.
+  - **Status:** `1` (Funded)
 
-## Next Steps
+- **`submit_work(ipfs_hash: String)`**
 
-You can take this project and customize it to build your own decentralized applications on Algorand. Make sure to understand how to use AlgoKit and how to write smart contracts for Algorand before you start.
+  - **Who:** Called by the **Freelancer**.
+  - **What:** The freelancer submits the IPFS CID (hash) of their completed work. The contract validates the hash length (46-59 bytes) to ensure it's a valid CID.
+  - **Status:** `2` (Submitted)
+
+- **`approve_work()` ⭐ Core Innovation ⭐**
+
+  - **Who:** Called by the **Client**.
+  - **What:** This is the core of the project. When called, it triggers a sequence of **grouped inner transactions** _from the smart contract itself_:
+    1.  **Payment:** Submits an `itxn.Payment` to transfer the full `escrow_amount` from the contract's balance to the `freelancer_address`.
+    2.  **NFT Mint:** Submits an `itxn.AssetConfig` to create a new, unique ASA (NFT). The NFT's metadata is set using the `job_title` and the `work_hash` (e.g., `url: "ipfs://{work_hash}"`).
+    3.  **NFT Transfer:** Submits an `itxn.AssetTransfer` to send the newly minted NFT (total supply: 1) to the `freelancer_address`.
+  - **Atomicity:** All three actions succeed or fail together. It is impossible for the freelancer to be paid without receiving the NFT, or for the NFT to be minted without the freelancer being paid.
+  - **Status:** `3` (Completed)
+
+- **`cancel()`**
+
+  - **Who:** Called by the **Client**.
+  - **What:** A safety measure. The client can cancel the job and withdraw their funds _only_ if the job is in the `Created` (0) or `Funded` (1) state. This is disabled once the freelancer calls `submit_work()`.
+  - **Status:** `4` (Canceled)
+
+- **`get_job_details() -> JobDetails`**
+  - **Who:** Anyone (Read-only).
+  - **What:** Returns a struct containing all current job state variables.
+
+### 🔒 Key Security Features
+
+- **Strict Sender Checks:** Every state-changing method (`fund`, `submit_work`, `approve_work`, `cancel`) uses `assert Txn.sender == ...` to ensure only the authorized party (client or freelancer) can perform an action.
+- **Status-Based Logic:** The contract uses a `job_status` enum to enforce a strict lifecycle. For example, `approve_work` will fail if the status isn't `Submitted` (2).
+- **Grouped Transaction Validation:** The `fund` method explicitly checks that it is part of a 2-transaction group and that the _other_ transaction is a payment of the _exact_ escrow amount.
+- **Immutable NFTs:** When minting the POW NFT, the `manager`, `reserve`, `freeze`, and `clawback` addresses are set to an empty `Account()`. This makes the NFT truly immutable and permanently owned by the freelancer, with no possibility of it being altered or clawed back.
+- **IPFS Hash Validation:** The `submit_work` method performs a basic sanity check on the length of the IPFS hash to prevent storage of junk data.
+
+---
+
+## 🔗 System Interaction Flow
+
+1.  **Job Creation:** The **Client** fills out a form on the frontend. The backend deploys a new `AlgoFreelance` contract instance with the job details.
+2.  **Funding:** The **Client** signs and sends a grouped transaction: a `Payment` transaction (to fund the contract) and an `ApplicationCall` transaction (to the `fund()` method).
+3.  **Work Submission:** The **Freelancer** uploads their deliverable to IPFS, gets the CID, and calls the `submit_work()` method with the CID.
+4.  **Approval:** The **Client** reviews the work (via the IPFS link) and calls the `approve_work()` method.
+5.  **Atomic Settlement:** The smart contract automatically executes the 3-part inner transaction group:
+    - ALGO is paid to the freelancer.
+    - POW NFT is minted.
+    - POW NFT is transferred to the freelancer.
+6.  **Completion:** The job is complete. The freelancer has their payment and a permanent, on-chain certificate of their work.
+
+---
+
+## 🔗 Deployed Contract (TestNet)
+
+_[Your AlgoExplorer / Pera Explorer link to the deployed Application ID on TestNet here.]_
+
+---
+
+## ✅ Final Summary
+
+This smart contract architecture ensures that:
+
+- Clients can hire with confidence, knowing funds are only released upon approval.
+- Freelancers can work with certainty, knowing payment is guaranteed and atomic with their on-chain reputation.
+- Reputation (POW NFTs) is portable, immutable, and owned by the freelancer, not a platform.
+- The entire process is autonomous, transparent, and removes the need for costly intermediaries, all thanks to Algorand's powerful inner transaction capabilities.
