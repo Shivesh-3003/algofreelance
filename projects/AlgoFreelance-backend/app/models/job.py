@@ -59,6 +59,10 @@ class IPFSUploadResponse(BaseModel):
 
 # Transaction Construction Models
 
+class FundJobRequest(BaseModel):
+    """Request to construct fund transaction"""
+    client_address: str  # Address that will sign the funding transactions
+
 class FundJobResponse(BaseModel):
     """Response containing unsigned grouped transactions for funding a job"""
     success: bool = True
@@ -78,6 +82,10 @@ class SubmitWorkResponse(BaseModel):
     transaction: str  # Base64-encoded unsigned transaction
     signer_address: str  # Address that should sign this transaction
     message: str = "Sign and send this transaction to submit your work"
+
+class ApproveWorkRequest(BaseModel):
+    """Request to construct approve work transaction"""
+    client_address: str  # Address that will sign the approval transaction
 
 class ApproveWorkResponse(BaseModel):
     """Response containing unsigned approve work transaction"""

@@ -4,10 +4,10 @@ from typing import Annotated, Optional
 
 # Import your Pydantic models and service functions
 from ..models.job import (
-    JobCreateRequest, JobCreateResponse, 
+    JobCreateRequest, JobCreateResponse,
     JobDetailsResponse, PortfolioResponse,
-    FundJobResponse, SubmitWorkRequest, SubmitWorkResponse,
-    ApproveWorkResponse, BroadcastTransactionRequest, BroadcastTransactionResponse,
+    FundJobRequest, FundJobResponse, SubmitWorkRequest, SubmitWorkResponse,
+    ApproveWorkRequest, ApproveWorkResponse, BroadcastTransactionRequest, BroadcastTransactionResponse,
     JobListResponse  # Added for job listing
 )
 from ..services import algorand_service
@@ -105,26 +105,26 @@ async def get_nfts(address: str):
 # --- Transaction Construction Endpoints ---
 
 @router.post("/jobs/{app_id}/fund", response_model=FundJobResponse)
-async def fund_job(app_id: int, client_address: Annotated[str, Body()]):
+async def fund_job(app_id: int, request: FundJobRequest):
     """
     Constructs unsigned grouped transactions for funding a job contract.
-    
+
     **Flow:**
     1. Backend constructs payment + app call transactions
     2. Frontend wallet signs both transactions
     3. Frontend broadcasts to Algorand network
-    
+
     **Args:**
     - app_id: Application ID of the job contract
-    - client_address: Client's Algorand address (must match contract)
-    
+    - request.client_address: Client's Algorand address (must match contract)
+
     **Returns:**
     - Two unsigned transactions as base64 strings
     - Group ID for atomic execution
     - Instructions for frontend
     """
     try:
-        result = await construct_fund_transaction(app_id, client_address)
+        result = await construct_fund_transaction(app_id, request.client_address)
         return FundJobResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to construct fund transaction: {e}")
@@ -163,33 +163,33 @@ async def submit_work(app_id: int, request: SubmitWorkRequest):
 
 
 @router.post("/jobs/{app_id}/approve", response_model=ApproveWorkResponse)
-async def approve_work(app_id: int, client_address: Annotated[str, Body()]):
+async def approve_work(app_id: int, request: ApproveWorkRequest):
     """
     Constructs unsigned transaction for approving work and minting NFT.
-    
+
     **Core Innovation:**
     This triggers 3 grouped inner transactions atomically:
     1. Payment to freelancer
     2. Mint POWCERT NFT
     3. Transfer NFT to freelancer
-    
+
     **Flow:**
     1. Backend constructs app call with increased fee (4000 microALGOs)
     2. Frontend wallet signs transaction
     3. Frontend broadcasts to Algorand network
     4. Smart contract executes all 3 inner transactions
-    
+
     **Args:**
     - app_id: Application ID of the job contract
-    - client_address: Client's Algorand address (must match contract)
-    
+    - request.client_address: Client's Algorand address (must match contract)
+
     **Returns:**
     - Unsigned transaction as base64 string
     - Expected NFT name and payment amount
     - Instructions for frontend
     """
     try:
-        result = await construct_approve_work_transaction(app_id, client_address)
+        result = await construct_approve_work_transaction(app_id, request.client_address)
         return ApproveWorkResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to construct approve transaction: {e}")

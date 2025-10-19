@@ -68,48 +68,59 @@ async def deploy_new_job_contract(job_data: JobCreateRequest) -> dict:
     """
     Deploys a new instance of the AlgoFreelance contract.
     Uses the auto-generated factory from algopy.
-    
+
     Args:
         job_data: JobCreateRequest with client/freelancer addresses, amount, title
-        
+
     Returns:
         dict with app_id, app_address, txn_id, funding_amount
     """
-    # Create factory for deploying new contracts
-    factory = AlgoFreelanceFactory(
-        algorand=algorand_client,
-        default_sender=deployer_address,
-        default_signer=deployer_account.signer,
-    )
-    
-    # Deploy contract (create application with bare call)
-    # The contract allows bare create (see contract.py bareActions)
-    client, result = factory.send.create.bare()
-    
-    app_id = result.app_id
-    app_address = result.app_address
-    create_txn_id = result.tx_id
-    
-    print(f"[Deploy] Created contract with App ID: {app_id}")
-    print(f"[Deploy] Contract address: {app_address}")
-    
-    # Call initialize method
-    init_result = client.send.initialize(
-        args=(job_data.client_address, job_data.freelancer_address, job_data.escrow_amount, job_data.job_title)
-    )
-    
-    print(f"[Deploy] Initialized contract. Txn ID: {init_result.tx_id}")
-    print(f"[Deploy] Status should be 0 (Created)")
-    
-    # Calculate funding amount (escrow + 0.3 ALGO buffer for min balance + fees)
-    funding_amount = job_data.escrow_amount + 300_000  # 0.3 ALGO
-    
-    return {
-        "app_id": app_id,
-        "app_address": app_address,
-        "txn_id": create_txn_id,
-        "funding_amount": funding_amount,
-    }
+    try:
+        # Create factory for deploying new contracts
+        factory = AlgoFreelanceFactory(
+            algorand=algorand_client,
+            default_sender=deployer_address,
+            default_signer=deployer_account.signer,
+        )
+
+        # Deploy contract (create application with bare call)
+        # The contract allows bare create (see contract.py bareActions)
+        client, result = factory.send.create.bare()
+
+        app_id = result.app_id
+        app_address = result.app_address
+
+        print(f"[Deploy] Created contract with App ID: {app_id}")
+        print(f"[Deploy] Contract address: {app_address}")
+
+        # Call initialize method
+        init_result = client.send.initialize(
+            args=(job_data.client_address, job_data.freelancer_address, job_data.escrow_amount, job_data.job_title)
+        )
+
+        # Use the initialization transaction ID (more meaningful than create)
+        init_txn_id = init_result.tx_id
+
+        print(f"[Deploy] Initialized contract. Txn ID: {init_txn_id}")
+        print(f"[Deploy] Status should be 0 (Created)")
+
+        # Calculate funding amount (escrow + 0.3 ALGO buffer for min balance + fees)
+        funding_amount = job_data.escrow_amount + 300_000  # 0.3 ALGO
+
+        return {
+            "app_id": app_id,
+            "app_address": app_address,
+            "txn_id": init_txn_id,
+            "funding_amount": funding_amount,
+        }
+    except ValueError as e:
+        error_message = str(e)
+        if "transaction already in ledger" in error_message:
+            raise ValueError("Job creation already in progress. Please wait for the current transaction to complete and avoid clicking the button multiple times.")
+        raise
+    except Exception as e:
+        print(f"[Deploy] Error during deployment: {e}")
+        raise
 
 
 async def get_job_details_from_state(app_id: int) -> dict:
@@ -182,84 +193,90 @@ async def get_job_details_from_state(app_id: int) -> dict:
 async def construct_fund_transaction(app_id: int, client_address: str) -> dict:
     """
     Constructs unsigned grouped transactions for funding a job contract.
-    
+
     Returns:
         - Two unsigned transactions (payment + app call) as base64 strings
         - Group ID for the atomic transaction group
-        
+
     The frontend wallet will sign both transactions and broadcast them.
     """
     from algosdk import transaction
-    from algosdk.atomic_transaction_composer import TransactionWithSigner
-    import base64
-    
-    # Get job details to retrieve escrow amount and contract address
-    job_details = await get_job_details_from_state(app_id)
-    escrow_amount = job_details["escrow_amount"]
-    
-    # Get contract address
-    app_address = algorand_client.client.algod.application_info(app_id)["params"]["global-state-schema"]
-    # Actually get the app address properly
-    app_info = algorand_client.client.algod.application_info(app_id)
     from algosdk.logic import get_application_address
-    contract_address = get_application_address(app_id)
+    import base64
+
+    try:
+        print(f"[FundTxn] Starting fund transaction construction for app {app_id}")
+        print(f"[FundTxn] Client address: {client_address}, type: {type(client_address)}")
+
+        # Get job details to retrieve escrow amount
+        job_details = await get_job_details_from_state(app_id)
+        escrow_amount = job_details["escrow_amount"]
+        print(f"[FundTxn] Escrow amount: {escrow_amount}")
+
+        # Get contract address
+        contract_address = get_application_address(app_id)
+        print(f"[FundTxn] Contract address: {contract_address}")
+
+        # Get suggested params
+        sp = algorand_client.client.algod.suggested_params()
+        print(f"[FundTxn] Got suggested params")
+    except Exception as e:
+        print(f"[FundTxn] Error in setup: {e}")
+        raise
     
-    # Get suggested params
-    sp = algorand_client.client.algod.suggested_params()
-    
-    # Transaction 1: Payment from client to contract
-    payment_txn = transaction.PaymentTxn(
-        sender=client_address,
-        sp=sp,
-        receiver=contract_address,
-        amt=escrow_amount,
-    )
-    
-    # Transaction 2: App call to fund() method
-    # Create client to get ABI method
-    client = AlgoFreelanceClient(
-        algorand=algorand_client,
-        app_id=app_id,
-        default_sender=client_address,
-        default_signer=None,  # No signer for unsigned transaction construction
-    )
-    
-    # Build the app call transaction using the client
-    # We need to compose the fund() call manually
-    from algosdk.abi import Method
-    from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
-    
-    # Use ATC to build the transaction
-    atc = AtomicTransactionComposer()
-    
-    # Add fund method call - fund() takes no arguments
-    # Get the method from the contract's ABI
-    fund_method = None
-    for method in client.app_client.app_spec.contract.methods:
-        if method.name == "fund":
-            fund_method = method
-            break
-    
-    if not fund_method:
-        raise ValueError("fund() method not found in contract ABI")
-    
-    app_call_txn = transaction.ApplicationCallTxn(
-        sender=client_address,
-        sp=sp,
-        index=app_id,
-        on_complete=transaction.OnComplete.NoOpOC,
-        app_args=[fund_method.get_selector()],  # Just the method selector, no args
-    )
-    
-    # Group the transactions
-    group_id = transaction.calculate_group_id([payment_txn, app_call_txn])
-    payment_txn.group = group_id
-    app_call_txn.group = group_id
-    
-    # Encode transactions to base64
-    payment_txn_b64 = base64.b64encode(transaction.write_to_file([payment_txn], False)).decode('utf-8')
-    app_call_txn_b64 = base64.b64encode(transaction.write_to_file([app_call_txn], False)).decode('utf-8')
-    
+    try:
+        # Transaction 1: Payment from client to contract
+        print(f"[FundTxn] Creating payment transaction...")
+        payment_txn = transaction.PaymentTxn(
+            sender=client_address,
+            sp=sp,
+            receiver=contract_address,
+            amt=escrow_amount,
+        )
+        print(f"[FundTxn] Payment transaction created")
+
+        # Transaction 2: App call to fund() method
+        print(f"[FundTxn] Creating app call transaction...")
+        from algosdk.abi import Method as ABIMethod
+
+        # Create algosdk Method object to get selector - fund() takes no arguments
+        abi_method = ABIMethod.from_signature("fund()void")
+        print(f"[FundTxn] ABI method created, selector: {abi_method.get_selector()}")
+
+        app_call_txn = transaction.ApplicationCallTxn(
+            sender=client_address,
+            sp=sp,
+            index=app_id,
+            on_complete=transaction.OnComplete.NoOpOC,
+            app_args=[abi_method.get_selector()],  # Just the method selector, no args
+        )
+        print(f"[FundTxn] App call transaction created")
+
+        # Group the transactions
+        print(f"[FundTxn] Grouping transactions...")
+        group_id = transaction.calculate_group_id([payment_txn, app_call_txn])
+        payment_txn.group = group_id
+        app_call_txn.group = group_id
+        print(f"[FundTxn] Transactions grouped")
+
+        # Encode transactions to base64 using algosdk encoding
+        # encoding.msgpack_encode() returns a base64 STRING directly, not bytes!
+        print(f"[FundTxn] Encoding transactions...")
+        from algosdk import encoding
+
+        # These return base64 strings directly - do NOT encode again!
+        payment_txn_b64 = encoding.msgpack_encode(payment_txn)
+        app_call_txn_b64 = encoding.msgpack_encode(app_call_txn)
+
+        print(f"[FundTxn] Transactions encoded successfully")
+        print(f"[FundTxn] Payment txn type: {type(payment_txn_b64)}, length: {len(payment_txn_b64)}")
+        print(f"[FundTxn] App call txn type: {type(app_call_txn_b64)}, length: {len(app_call_txn_b64)}")
+    except Exception as e:
+        print(f"[FundTxn] Error during transaction construction: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
     print(f"[FundTxn] Constructed grouped transactions for app {app_id}")
     print(f"[FundTxn] Payment: {escrow_amount} microALGOs from {client_address} to {contract_address}")
     print(f"[FundTxn] Group ID: {base64.b64encode(group_id).decode('utf-8')}")
@@ -310,30 +327,34 @@ async def construct_submit_work_transaction(app_id: int, freelancer_address: str
     
     # Get the submit_work method from ABI
     submit_work_method = None
-    for method in client.app_client.app_spec.contract.methods:
+    for method in client.app_client.app_spec.methods:
         if method.name == "submit_work":
             submit_work_method = method
             break
-    
+
     if not submit_work_method:
         raise ValueError("submit_work() method not found in contract ABI")
-    
+
+    # Create algosdk Method object to get selector
+    from algosdk.abi import Method as ABIMethod, StringType
+    abi_method = ABIMethod.from_signature(f"{submit_work_method.name}(string)void")
+
     # Encode the ipfs_hash argument (it's an arc4.String)
-    from algosdk.abi import StringType
     string_type = StringType()
     encoded_hash = string_type.encode(ipfs_hash)
-    
+
     # Build app call transaction
     app_call_txn = transaction.ApplicationCallTxn(
         sender=freelancer_address,
         sp=sp,
         index=app_id,
         on_complete=transaction.OnComplete.NoOpOC,
-        app_args=[submit_work_method.get_selector(), encoded_hash],
+        app_args=[abi_method.get_selector(), encoded_hash],
     )
-    
+
     # Encode to base64
-    txn_b64 = base64.b64encode(transaction.write_to_file([app_call_txn], False)).decode('utf-8')
+    from algosdk import encoding
+    txn_b64 = base64.b64encode(encoding.msgpack_encode(app_call_txn)).decode('utf-8')
     
     print(f"[SubmitWork] Constructed transaction for app {app_id}")
     print(f"[SubmitWork] Freelancer: {freelancer_address}, IPFS: {ipfs_hash}")
@@ -382,25 +403,30 @@ async def construct_approve_work_transaction(app_id: int, client_address: str) -
     
     # Get the approve_work method from ABI
     approve_method = None
-    for method in client.app_client.app_spec.contract.methods:
+    for method in client.app_client.app_spec.methods:
         if method.name == "approve_work":
             approve_method = method
             break
-    
+
     if not approve_method:
         raise ValueError("approve_work() method not found in contract ABI")
-    
+
+    # Create algosdk Method object to get selector
+    from algosdk.abi import Method as ABIMethod
+    abi_method = ABIMethod.from_signature(f"{approve_method.name}()void")
+
     # Build app call transaction (no arguments for approve_work)
     app_call_txn = transaction.ApplicationCallTxn(
         sender=client_address,
         sp=sp,
         index=app_id,
         on_complete=transaction.OnComplete.NoOpOC,
-        app_args=[approve_method.get_selector()],
+        app_args=[abi_method.get_selector()],
     )
-    
+
     # Encode to base64
-    txn_b64 = base64.b64encode(transaction.write_to_file([app_call_txn], False)).decode('utf-8')
+    from algosdk import encoding
+    txn_b64 = base64.b64encode(encoding.msgpack_encode(app_call_txn)).decode('utf-8')
     
     expected_nft_name = f"AlgoFreelance: {job_title}"
     

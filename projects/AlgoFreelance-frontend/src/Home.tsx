@@ -2,6 +2,7 @@ import { Briefcase, Shield, Award, Zap, ArrowRight, CheckCircle, Menu, X } from 
 import { useState } from 'react';
 import { Link } from 'react-router-dom'
 import ConnectWallet from './components/ConnectWallet';
+import Navbar from './components/shared/Navbar';
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,41 +41,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Navigation */}
-      <nav className="bg-gray-900/80 backdrop-blur-md border-b border-gray-700 fixed w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg"></div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                AlgoFreelance
-              </span>
-            </div>
-            
-            {/* Desktop Menu */}
-            <div className="hidden md:flex space-x-8">
-              <a href="#features" className="text-gray-300 hover:text-blue-400 transition">Features</a>
-              <a href="#how-it-works" className="text-gray-300 hover:text-blue-400 transition">How It Works</a>
-              <a href="#portfolio" className="text-gray-300 hover:text-blue-400 transition">Portfolio</a>
-            </div>
-            
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden text-gray-300"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            
-            <button 
-              onClick={() => setOpenConnectWalletModal(true)}
-              className="hidden md:block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all hover:scale-105 border border-blue-400/20"
-            >
-              Sign In
-            </button>
-          </div>
-          
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
+      <Navbar />
+
+      {/* Old mobile menu code kept for reference
+      {mobileMenuOpen && (
             <div className="md:hidden pb-4 space-y-2">
               <a href="#features" className="block text-gray-300 hover:text-blue-400 py-2">Features</a>
               <a href="#how-it-works" className="block text-gray-300 hover:text-blue-400 py-2">How It Works</a>
@@ -108,13 +78,13 @@ export default function HomePage() {
             Build an immutable portfolio with NFT certificates.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all hover:scale-105 font-semibold flex items-center justify-center border border-blue-400/20">
+            <Link to="/create-job" className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all hover:scale-105 font-semibold flex items-center justify-center border border-blue-400/20">
               Create Your First Job
               <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
-            </button>
-            <button className="bg-gray-800 text-white px-8 py-4 rounded-xl border-2 border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg font-semibold">
-              View Demo Portfolio
-            </button>
+            </Link>
+            <Link to="/jobs" className="bg-gray-800 text-white px-8 py-4 rounded-xl border-2 border-gray-600 hover:border-blue-500 transition-all hover:shadow-lg font-semibold">
+              Browse Jobs
+            </Link>
           </div>
         </div>
       </section>
@@ -223,9 +193,9 @@ export default function HomePage() {
                 </ul>
               </div>
             </div>
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-4 rounded-xl hover:shadow-2xl transition-all hover:scale-105 font-semibold border border-blue-400/20">
+            <Link to="/create-job" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-4 rounded-xl hover:shadow-2xl transition-all hover:scale-105 font-semibold border border-blue-400/20 inline-block">
               Create Your First Job Now
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -234,7 +204,11 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12 px-4 border-t border-gray-800">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg"></div>
+            <img
+              src="/logo.jpeg"
+              alt="AlgoFreelance Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <span className="text-xl font-bold">AlgoFreelance</span>
           </div>
           <p className="text-gray-400 mb-4">Decentralized freelancing on Algorand</p>
