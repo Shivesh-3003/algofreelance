@@ -11,7 +11,7 @@ from beaker import Application
 
 # Import your smart contract and Pydantic models
 from ..models.job import JobCreateRequest
-from contracts.escrow import AlgoFreelance # For this part we cant import since it is at a different part
+from contracts.escrow import AlgoFreelance # For this part 
 
 
 # --- Client Initialization ---
