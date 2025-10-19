@@ -36,6 +36,9 @@ lint.unfixable = ["B", "RUF"]
 allow-star-arg-any = true
 suppress-none-returning = true
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "RUF002"]  # Ignore type annotations and ambiguous characters in test files
+
 [tool.pytest.ini_options]
 pythonpath = ["smart_contracts", "tests"]
 

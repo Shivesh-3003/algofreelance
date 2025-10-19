@@ -1,67 +1,659 @@
-#pragma version 11
+#pragma version 10
 #pragma typetrack false
 
-// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+// smart_contracts.algo_freelance.contract.AlgoFreelance.__algopy_entrypoint_with_init() -> uint64:
 main:
-    // smart_contracts/algo_freelance/contract.py:5
+    intcblock 0 1 2
+    bytecblock "job_status" "client_address" "freelancer_address" "escrow_amount" "work_hash" "job_title" "created_at" 0x0000000000000000 0x0000000000000001 0x0000000000000002
+    // smart_contracts/algo_freelance/contract.py:21
     // class AlgoFreelance(ARC4Contract):
     txn NumAppArgs
-    bz main___algopy_default_create@5
-    pushbytes 0x02bece11 // method "hello(string)string"
+    bz main_bare_routing@11
+    pushbytess 0x890632b1 0xe9892bef 0xe031da70 0x40c3067f 0x31f26a9b 0xd0e63f01 // method "initialize(address,address,uint64,string)void", method "fund()void", method "submit_work(string)void", method "approve_work()void", method "cancel()void", method "get_job_details()(address,address,uint64,uint64,string,string,uint64,uint64)"
     txna ApplicationArgs 0
-    match main_hello_route@3
-    err
+    match main_initialize_route@5 main_fund_route@6 main_submit_work_route@7 main_approve_work_route@8 main_cancel_route@9 main_get_job_details_route@10
 
-main_hello_route@3:
-    // smart_contracts/algo_freelance/contract.py:6
-    // @abimethod()
+main_after_if_else@13:
+    // smart_contracts/algo_freelance/contract.py:21
+    // class AlgoFreelance(ARC4Contract):
+    intc_0 // 0
+    return
+
+main_get_job_details_route@10:
+    // smart_contracts/algo_freelance/contract.py:139
+    // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
+    assert // OnCompletion is not NoOp
     txn ApplicationID
-    &&
-    assert // OnCompletion must be NoOp && can only call when not creating
-    b hello
-
-main___algopy_default_create@5:
-    txn OnCompletion
-    !
-    txn ApplicationID
-    !
-    &&
-    return // on error: OnCompletion must be NoOp && can only call when creating
-
-
-// smart_contracts.algo_freelance.contract.AlgoFreelance.hello[routing]() -> void:
-hello:
-    // smart_contracts/algo_freelance/contract.py:6
-    // @abimethod()
-    txna ApplicationArgs 1
-    dup
-    pushint 0 // 0
-    extract_uint16
-    pushint 2 // 2
-    +
-    dig 1
-    len
-    ==
-    assert // invalid number of bytes for (len+utf8[])
-    extract 2 0
-    // smart_contracts/algo_freelance/contract.py:8
-    // return "Hello, " + name
-    pushbytes "Hello, "
-    swap
+    assert // can only call when not creating
+    callsub get_job_details
+    uncover 7
+    uncover 7
     concat
-    // smart_contracts/algo_freelance/contract.py:6
-    // @abimethod()
-    dup
+    uncover 6
+    concat
+    uncover 5
+    concat
+    pushbytes 0x0064
+    concat
+    dig 4
     len
+    pushint 100 // 100
+    +
     itob
     extract 6 2
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    uncover 2
+    concat
     swap
     concat
     pushbytes 0x151f7c75
     swap
     concat
     log
-    pushint 1 // 1
+    intc_1 // 1
     return
+
+main_cancel_route@9:
+    // smart_contracts/algo_freelance/contract.py:124
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub cancel
+    intc_1 // 1
+    return
+
+main_approve_work_route@8:
+    // smart_contracts/algo_freelance/contract.py:83
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub approve_work
+    intc_1 // 1
+    return
+
+main_submit_work_route@7:
+    // smart_contracts/algo_freelance/contract.py:68
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algo_freelance/contract.py:21
+    // class AlgoFreelance(ARC4Contract):
+    txna ApplicationArgs 1
+    // smart_contracts/algo_freelance/contract.py:68
+    // @arc4.abimethod
+    callsub submit_work
+    intc_1 // 1
+    return
+
+main_fund_route@6:
+    // smart_contracts/algo_freelance/contract.py:54
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub fund
+    intc_1 // 1
+    return
+
+main_initialize_route@5:
+    // smart_contracts/algo_freelance/contract.py:32
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algo_freelance/contract.py:21
+    // class AlgoFreelance(ARC4Contract):
+    txna ApplicationArgs 1
+    txna ApplicationArgs 2
+    txna ApplicationArgs 3
+    txna ApplicationArgs 4
+    // smart_contracts/algo_freelance/contract.py:32
+    // @arc4.abimethod
+    callsub initialize
+    intc_1 // 1
+    return
+
+main_bare_routing@11:
+    // smart_contracts/algo_freelance/contract.py:21
+    // class AlgoFreelance(ARC4Contract):
+    txn OnCompletion
+    bnz main_after_if_else@13
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    intc_1 // 1
+    return
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.initialize(client_address: bytes, freelancer_address: bytes, escrow_amount: bytes, job_title: bytes) -> void:
+initialize:
+    // smart_contracts/algo_freelance/contract.py:32-39
+    // @arc4.abimethod
+    // def initialize(
+    //     self,
+    //     client_address: arc4.Address,
+    //     freelancer_address: arc4.Address,
+    //     escrow_amount: arc4.UInt64,
+    //     job_title: arc4.String,
+    // ) -> None:
+    proto 4 0
+    // smart_contracts/algo_freelance/contract.py:40-41
+    // # --- PRD §6.2: initialize() ---
+    // assert Txn.sender == Global.creator_address, "Only the creator can initialize the contract"
+    txn Sender
+    global CreatorAddress
+    ==
+    assert // Only the creator can initialize the contract
+    // smart_contracts/algo_freelance/contract.py:42-43
+    // # Extract native values from ARC4 types
+    // assert escrow_amount > UInt64(0), "Escrow amount must be greater than 0"
+    intc_0 // 0
+    itob
+    frame_dig -2
+    b<
+    assert // Escrow amount must be greater than 0
+    // smart_contracts/algo_freelance/contract.py:45-46
+    // # Use .value to set global state
+    // self.client_address.value = client_address
+    bytec_1 // "client_address"
+    frame_dig -4
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:47
+    // self.freelancer_address.value = freelancer_address
+    bytec_2 // "freelancer_address"
+    frame_dig -3
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:48
+    // self.escrow_amount.value = escrow_amount
+    bytec_3 // "escrow_amount"
+    frame_dig -2
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:49
+    // self.job_title.value = job_title  # Store ARC4 String directly
+    bytec 5 // "job_title"
+    frame_dig -1
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:50
+    // self.created_at.value = arc4.UInt64(Global.latest_timestamp)
+    global LatestTimestamp
+    itob
+    bytec 6 // "created_at"
+    swap
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:51
+    // self.job_status.value = arc4.UInt64(0)  # Status: Created
+    bytec_0 // "job_status"
+    bytec 7 // 0x0000000000000000
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:52
+    // self.work_hash.value = arc4.String("")  # Initialize to empty arc4 string
+    bytec 4 // "work_hash"
+    pushbytes 0x0000
+    app_global_put
+    retsub
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.fund() -> void:
+fund:
+    // smart_contracts/algo_freelance/contract.py:56-57
+    // # This method provides a robust way to atomically fund the contract and update its state.
+    // assert self.job_status.value == arc4.UInt64(0), "Job not in Created status"
+    intc_0 // 0
+    bytec_0 // "job_status"
+    app_global_get_ex
+    assert // check self.job_status exists
+    bytec 7 // 0x0000000000000000
+    b==
+    assert // Job not in Created status
+    // smart_contracts/algo_freelance/contract.py:58
+    // assert Txn.sender == self.client_address.value.native, "Only client can fund"
+    txn Sender
+    intc_0 // 0
+    bytec_1 // "client_address"
+    app_global_get_ex
+    assert // check self.client_address exists
+    ==
+    assert // Only client can fund
+    // smart_contracts/algo_freelance/contract.py:60-61
+    // # Verify this app call is grouped with a payment transaction to this contract
+    // assert Global.group_size == UInt64(2), "Must be grouped with a payment transaction"
+    global GroupSize
+    intc_2 // 2
+    ==
+    assert // Must be grouped with a payment transaction
+    // smart_contracts/algo_freelance/contract.py:62
+    // payment_txn = gtxn.PaymentTransaction(1)
+    intc_1 // 1
+    gtxns TypeEnum
+    intc_1 // pay
+    ==
+    assert // transaction type is pay
+    intc_1 // 1
+    // smart_contracts/algo_freelance/contract.py:63
+    // assert payment_txn.receiver == Global.current_application_address, "Payment must be to the contract"
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert // Payment must be to the contract
+    // smart_contracts/algo_freelance/contract.py:62
+    // payment_txn = gtxn.PaymentTransaction(1)
+    intc_1 // 1
+    // smart_contracts/algo_freelance/contract.py:64
+    // assert payment_txn.amount == self.escrow_amount.value.native, "Payment amount must match escrow amount"
+    gtxns Amount
+    intc_0 // 0
+    bytec_3 // "escrow_amount"
+    app_global_get_ex
+    assert // check self.escrow_amount exists
+    btoi
+    ==
+    assert // Payment amount must match escrow amount
+    // smart_contracts/algo_freelance/contract.py:66
+    // self.job_status.value = arc4.UInt64(1)  # Status: Funded
+    bytec_0 // "job_status"
+    bytec 8 // 0x0000000000000001
+    app_global_put
+    retsub
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.submit_work(ipfs_hash: bytes) -> void:
+submit_work:
+    // smart_contracts/algo_freelance/contract.py:68-69
+    // @arc4.abimethod
+    // def submit_work(self, ipfs_hash: arc4.String) -> None:
+    proto 1 0
+    // smart_contracts/algo_freelance/contract.py:70-71
+    // # --- PRD §6.2: submit_work() ---
+    // assert self.job_status.value == arc4.UInt64(1), "Job not in Funded status"
+    intc_0 // 0
+    bytec_0 // "job_status"
+    app_global_get_ex
+    assert // check self.job_status exists
+    bytec 8 // 0x0000000000000001
+    b==
+    assert // Job not in Funded status
+    // smart_contracts/algo_freelance/contract.py:72
+    // assert Txn.sender == self.freelancer_address.value.native, "Only freelancer can submit work"
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "freelancer_address"
+    app_global_get_ex
+    assert // check self.freelancer_address exists
+    ==
+    assert // Only freelancer can submit work
+    // smart_contracts/algo_freelance/contract.py:74-76
+    // # --- PRD §6.2 Validation: ipfs_hash length between 46-59 bytes (CIDv0/v1) ---
+    // # Get hash length using .bytes.length
+    // hash_len = ipfs_hash.bytes.length
+    frame_dig -1
+    len
+    dup
+    // smart_contracts/algo_freelance/contract.py:77
+    // assert hash_len >= UInt64(46) and hash_len <= UInt64(59), "Invalid IPFS hash length"
+    pushint 46 // 46
+    >=
+    bz submit_work_bool_false@3
+    frame_dig 0
+    pushint 59 // 59
+    <=
+    bz submit_work_bool_false@3
+    intc_1 // 1
+
+submit_work_bool_merge@4:
+    // smart_contracts/algo_freelance/contract.py:77
+    // assert hash_len >= UInt64(46) and hash_len <= UInt64(59), "Invalid IPFS hash length"
+    assert // Invalid IPFS hash length
+    // smart_contracts/algo_freelance/contract.py:79-80
+    // # Store the arc4.String directly
+    // self.work_hash.value = ipfs_hash
+    bytec 4 // "work_hash"
+    frame_dig -1
+    app_global_put
+    // smart_contracts/algo_freelance/contract.py:81
+    // self.job_status.value = arc4.UInt64(2)  # Status: Submitted
+    bytec_0 // "job_status"
+    bytec 9 // 0x0000000000000002
+    app_global_put
+    retsub
+
+submit_work_bool_false@3:
+    intc_0 // 0
+    b submit_work_bool_merge@4
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.approve_work() -> void:
+approve_work:
+    // smart_contracts/algo_freelance/contract.py:85-86
+    // # --- PRD §6.2: approve_work() ---
+    // assert self.job_status.value == arc4.UInt64(2), "Job not in Submitted status"
+    intc_0 // 0
+    bytec_0 // "job_status"
+    app_global_get_ex
+    assert // check self.job_status exists
+    bytec 9 // 0x0000000000000002
+    b==
+    assert // Job not in Submitted status
+    // smart_contracts/algo_freelance/contract.py:87
+    // assert Txn.sender == self.client_address.value.native, "Only client can approve work"
+    txn Sender
+    intc_0 // 0
+    bytec_1 // "client_address"
+    app_global_get_ex
+    assert // check self.client_address exists
+    ==
+    assert // Only client can approve work
+    // smart_contracts/algo_freelance/contract.py:89-95
+    // # --- PRD §6.2 Core Innovation: Grouped Inner Transactions ---
+    // # 1. Payment to Freelancer
+    // itxn.Payment(
+    //     receiver=self.freelancer_address.value.native,
+    //     amount=self.escrow_amount.value.native,
+    //     fee=UInt64(0)  # Covered by outer transaction fee
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algo_freelance/contract.py:92
+    // receiver=self.freelancer_address.value.native,
+    intc_0 // 0
+    bytec_2 // "freelancer_address"
+    app_global_get_ex
+    assert // check self.freelancer_address exists
+    // smart_contracts/algo_freelance/contract.py:93
+    // amount=self.escrow_amount.value.native,
+    intc_0 // 0
+    bytec_3 // "escrow_amount"
+    app_global_get_ex
+    assert // check self.escrow_amount exists
+    btoi
+    itxn_field Amount
+    dup
+    itxn_field Receiver
+    // smart_contracts/algo_freelance/contract.py:89-91
+    // # --- PRD §6.2 Core Innovation: Grouped Inner Transactions ---
+    // # 1. Payment to Freelancer
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // smart_contracts/algo_freelance/contract.py:94
+    // fee=UInt64(0)  # Covered by outer transaction fee
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/algo_freelance/contract.py:89-95
+    // # --- PRD §6.2 Core Innovation: Grouped Inner Transactions ---
+    // # 1. Payment to Freelancer
+    // itxn.Payment(
+    //     receiver=self.freelancer_address.value.native,
+    //     amount=self.escrow_amount.value.native,
+    //     fee=UInt64(0)  # Covered by outer transaction fee
+    // ).submit()
+    itxn_submit
+    // smart_contracts/algo_freelance/contract.py:97-99
+    // # 2. Mint POW NFT
+    // # Get native string from arc4.String for concatenation
+    // job_title_bytes = self.job_title.value.native.bytes
+    intc_0 // 0
+    bytec 5 // "job_title"
+    app_global_get_ex
+    assert // check self.job_title exists
+    extract 2 0
+    // smart_contracts/algo_freelance/contract.py:100
+    // work_hash_bytes = self.work_hash.value.native.bytes
+    intc_0 // 0
+    bytec 4 // "work_hash"
+    app_global_get_ex
+    assert // check self.work_hash exists
+    extract 2 0
+    // smart_contracts/algo_freelance/contract.py:102-112
+    // nft_creation = itxn.AssetConfig(
+    //     total=UInt64(1),
+    //     decimals=UInt64(0),
+    //     asset_name=op.concat(Bytes(b"AlgoFreelance: "), job_title_bytes),
+    //     unit_name=Bytes(b"POWCERT"),
+    //     url=op.concat(Bytes(b"ipfs://"), work_hash_bytes),  # Add ipfs:// prefix for standard compliance
+    //     manager=Account(),
+    //     reserve=Account(),
+    //     freeze=Account(),
+    //     clawback=Account(),
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algo_freelance/contract.py:105
+    // asset_name=op.concat(Bytes(b"AlgoFreelance: "), job_title_bytes),
+    pushbytes 0x416c676f467265656c616e63653a20
+    uncover 2
+    concat
+    // smart_contracts/algo_freelance/contract.py:107
+    // url=op.concat(Bytes(b"ipfs://"), work_hash_bytes),  # Add ipfs:// prefix for standard compliance
+    pushbytes 0x697066733a2f2f
+    uncover 2
+    concat
+    // smart_contracts/algo_freelance/contract.py:108
+    // manager=Account(),
+    global ZeroAddress
+    // smart_contracts/algo_freelance/contract.py:109-111
+    // reserve=Account(),
+    // freeze=Account(),
+    // clawback=Account(),
+    dupn 3
+    itxn_field ConfigAssetClawback
+    itxn_field ConfigAssetFreeze
+    itxn_field ConfigAssetReserve
+    itxn_field ConfigAssetManager
+    itxn_field ConfigAssetURL
+    // smart_contracts/algo_freelance/contract.py:106
+    // unit_name=Bytes(b"POWCERT"),
+    pushbytes 0x504f5743455254
+    itxn_field ConfigAssetUnitName
+    itxn_field ConfigAssetName
+    // smart_contracts/algo_freelance/contract.py:104
+    // decimals=UInt64(0),
+    intc_0 // 0
+    itxn_field ConfigAssetDecimals
+    // smart_contracts/algo_freelance/contract.py:103
+    // total=UInt64(1),
+    intc_1 // 1
+    itxn_field ConfigAssetTotal
+    // smart_contracts/algo_freelance/contract.py:102
+    // nft_creation = itxn.AssetConfig(
+    pushint 3 // acfg
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/algo_freelance/contract.py:102-112
+    // nft_creation = itxn.AssetConfig(
+    //     total=UInt64(1),
+    //     decimals=UInt64(0),
+    //     asset_name=op.concat(Bytes(b"AlgoFreelance: "), job_title_bytes),
+    //     unit_name=Bytes(b"POWCERT"),
+    //     url=op.concat(Bytes(b"ipfs://"), work_hash_bytes),  # Add ipfs:// prefix for standard compliance
+    //     manager=Account(),
+    //     reserve=Account(),
+    //     freeze=Account(),
+    //     clawback=Account(),
+    // ).submit()
+    itxn_submit
+    itxn CreatedAssetID
+    // smart_contracts/algo_freelance/contract.py:114-120
+    // # 3. Transfer NFT to Freelancer
+    // itxn.AssetTransfer(
+    //     xfer_asset=nft_creation.created_asset,
+    //     asset_receiver=self.freelancer_address.value.native,
+    //     asset_amount=UInt64(1),
+    //     fee=UInt64(0)  # Covered by outer transaction fee
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algo_freelance/contract.py:118
+    // asset_amount=UInt64(1),
+    intc_1 // 1
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    itxn_field AssetReceiver
+    // smart_contracts/algo_freelance/contract.py:114-115
+    // # 3. Transfer NFT to Freelancer
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // smart_contracts/algo_freelance/contract.py:119
+    // fee=UInt64(0)  # Covered by outer transaction fee
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/algo_freelance/contract.py:114-120
+    // # 3. Transfer NFT to Freelancer
+    // itxn.AssetTransfer(
+    //     xfer_asset=nft_creation.created_asset,
+    //     asset_receiver=self.freelancer_address.value.native,
+    //     asset_amount=UInt64(1),
+    //     fee=UInt64(0)  # Covered by outer transaction fee
+    // ).submit()
+    itxn_submit
+    // smart_contracts/algo_freelance/contract.py:122
+    // self.job_status.value = arc4.UInt64(3)  # Status: Completed
+    bytec_0 // "job_status"
+    pushbytes 0x0000000000000003
+    app_global_put
+    retsub
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.cancel() -> void:
+cancel:
+    // smart_contracts/algo_freelance/contract.py:126-127
+    // # Allows client to cancel before work is submitted and retrieve funds.
+    // assert self.job_status.value.native < UInt64(2), "Job cannot be canceled after work has been submitted"  # Status 0 or 1
+    intc_0 // 0
+    bytec_0 // "job_status"
+    app_global_get_ex
+    assert // check self.job_status exists
+    btoi
+    intc_2 // 2
+    <
+    assert // Job cannot be canceled after work has been submitted
+    // smart_contracts/algo_freelance/contract.py:128
+    // assert Txn.sender == self.client_address.value.native, "Only client can cancel"
+    txn Sender
+    intc_0 // 0
+    bytec_1 // "client_address"
+    app_global_get_ex
+    assert // check self.client_address exists
+    swap
+    dig 1
+    ==
+    assert // Only client can cancel
+    // smart_contracts/algo_freelance/contract.py:130-135
+    // # Refund the client, leaving the minimum balance to keep the account open.
+    // # A separate "delete" method would be needed to close the account entirely.
+    // itxn.Payment(
+    //     receiver=self.client_address.value.native,
+    //     amount=Global.current_application_address.balance - Global.min_balance,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algo_freelance/contract.py:134
+    // amount=Global.current_application_address.balance - Global.min_balance,
+    global CurrentApplicationAddress
+    acct_params_get AcctBalance
+    assert // account funded
+    global MinBalance
+    -
+    itxn_field Amount
+    itxn_field Receiver
+    // smart_contracts/algo_freelance/contract.py:130-132
+    // # Refund the client, leaving the minimum balance to keep the account open.
+    // # A separate "delete" method would be needed to close the account entirely.
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/algo_freelance/contract.py:130-135
+    // # Refund the client, leaving the minimum balance to keep the account open.
+    // # A separate "delete" method would be needed to close the account entirely.
+    // itxn.Payment(
+    //     receiver=self.client_address.value.native,
+    //     amount=Global.current_application_address.balance - Global.min_balance,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/algo_freelance/contract.py:137
+    // self.job_status.value = arc4.UInt64(4)  # Status: Canceled
+    bytec_0 // "job_status"
+    pushbytes 0x0000000000000004
+    app_global_put
+    retsub
+
+
+// smart_contracts.algo_freelance.contract.AlgoFreelance.get_job_details() -> bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes:
+get_job_details:
+    // smart_contracts/algo_freelance/contract.py:143
+    // client_address=self.client_address.value,
+    intc_0 // 0
+    bytec_1 // "client_address"
+    app_global_get_ex
+    assert // check self.client_address exists
+    // smart_contracts/algo_freelance/contract.py:144
+    // freelancer_address=self.freelancer_address.value,
+    intc_0 // 0
+    bytec_2 // "freelancer_address"
+    app_global_get_ex
+    assert // check self.freelancer_address exists
+    // smart_contracts/algo_freelance/contract.py:145
+    // escrow_amount=self.escrow_amount.value,
+    intc_0 // 0
+    bytec_3 // "escrow_amount"
+    app_global_get_ex
+    assert // check self.escrow_amount exists
+    // smart_contracts/algo_freelance/contract.py:146
+    // job_status=self.job_status.value,
+    intc_0 // 0
+    bytec_0 // "job_status"
+    app_global_get_ex
+    assert // check self.job_status exists
+    // smart_contracts/algo_freelance/contract.py:147
+    // work_hash=self.work_hash.value,
+    intc_0 // 0
+    bytec 4 // "work_hash"
+    app_global_get_ex
+    assert // check self.work_hash exists
+    // smart_contracts/algo_freelance/contract.py:148
+    // job_title=self.job_title.value,
+    intc_0 // 0
+    bytec 5 // "job_title"
+    app_global_get_ex
+    assert // check self.job_title exists
+    // smart_contracts/algo_freelance/contract.py:149
+    // created_at=self.created_at.value,
+    intc_0 // 0
+    bytec 6 // "created_at"
+    app_global_get_ex
+    assert // check self.created_at exists
+    // smart_contracts/algo_freelance/contract.py:150
+    // app_id=arc4.UInt64(Global.current_application_id.id),
+    global CurrentApplicationID
+    itob
+    // smart_contracts/algo_freelance/contract.py:141-151
+    // # Return job details - arc4.Strings and arc4.Addresses are stored directly and can be returned as-is
+    // return JobDetails(
+    //     client_address=self.client_address.value,
+    //     freelancer_address=self.freelancer_address.value,
+    //     escrow_amount=self.escrow_amount.value,
+    //     job_status=self.job_status.value,
+    //     work_hash=self.work_hash.value,
+    //     job_title=self.job_title.value,
+    //     created_at=self.created_at.value,
+    //     app_id=arc4.UInt64(Global.current_application_id.id),
+    // )
+    retsub

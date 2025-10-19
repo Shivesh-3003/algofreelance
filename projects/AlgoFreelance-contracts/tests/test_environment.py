@@ -8,6 +8,7 @@ These tests verify that the environment is correctly configured:
 """
 
 import os
+
 import pytest
 
 
@@ -30,7 +31,7 @@ def test_algorand_client(algorand_client):
     assert "last-round" in status, "Failed to get network status"
     assert status["last-round"] >= 0, "Invalid last round"
 
-    print(f"\n✅ Connected to Algorand network")
+    print("\n✅ Connected to Algorand network")
     print(f"   Last round: {status['last-round']}")
     print(f"   Genesis ID: {status.get('genesis-id', 'N/A')}")
 
@@ -51,7 +52,7 @@ def test_client_account(client_account, algorand_client):
 
         # Note: Account might have 0 balance until funded
         if balance_algo == 0:
-            print(f"   ⚠️  Account needs funding!")
+            print("   ⚠️  Account needs funding!")
     except Exception as e:
         pytest.fail(f"Failed to get client account info: {e}")
 
@@ -72,16 +73,17 @@ def test_freelancer_account(freelancer_account, algorand_client):
 
         # Note: Account might have 0 balance until funded
         if balance_algo == 0:
-            print(f"   ⚠️  Account needs funding!")
+            print("   ⚠️  Account needs funding!")
     except Exception as e:
         pytest.fail(f"Failed to get freelancer account info: {e}")
 
 
 def test_accounts_are_different(client_account, freelancer_account):
     """Verify client and freelancer are different accounts"""
-    assert client_account["address"] != freelancer_account["address"], \
-        "Client and freelancer must be different accounts"
-    print(f"\n✅ Client and freelancer are different accounts")
+    assert (
+        client_account["address"] != freelancer_account["address"]
+    ), "Client and freelancer must be different accounts"
+    print("\n✅ Client and freelancer are different accounts")
 
 
 def test_mock_ipfs_hash():
