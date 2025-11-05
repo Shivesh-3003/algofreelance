@@ -1,0 +1,95 @@
+{
+  "kpis": {
+    "totalValue": 14250000,
+    "totalSpend": 9175000,
+    "netROI": 1.553
+  },
+  "projects": [
+    {
+      "id": 1,
+      "name": "AP Invoice Automation",
+      "status": "Scaling",
+      "spend": 1200000,
+      "value": 4500000,
+      "roi": 3.75,
+      "details": {
+        "description": "AI model to auto-read, categorize, and process vendor invoices, reducing manual data entry.",
+        "chartData": [
+          {"month": "Jan", "spend": 100000, "value": 0},
+          {"month": "Feb", "spend": 200000, "value": 100000},
+          {"month": "Mar", "spend": 300000, "value": 500000},
+          {"month": "Apr", "spend": 400000, "value": 1200000},
+          {"month": "May", "spend": 600000, "value": 2000000},
+          {"month": "Jun", "spend": 1200000, "value": 4500000}
+        ],
+        "metrics": {
+          "Invoices / Hour": "1,200",
+          "Adoption Rate": "98%",
+          "Manual Errors": "0.1%"
+        },
+        "aiInsight": {
+          "type": "positive",
+          "title": "Project has exceeded annual goals by 50%",
+          "reason": "High user adoption and >10x efficiency gains in invoice processing.",
+          "recommendation": "Scale this solution. AI analysis of 'Procurement' and 'Logistics' workflows suggests an additional $2M in potential value."
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Gen-AI Legal Review",
+      "status": "At Risk",
+      "spend": 500000,
+      "value": 0,
+      "roi": 0,
+      "details": {
+        "description": "Gen-AI pilot to review third-party contracts and flag non-standard clauses.",
+        "chartData": [
+          {"month": "Jan", "spend": 50000, "value": 0},
+          {"month": "Feb", "spend": 150000, "value": 0},
+          {"month": "Mar", "spend": 250000, "value": 0},
+          {"month": "Apr", "spend": 350000, "value": 0},
+          {"month": "May", "spend": 450000, "value": 0},
+          {"month": "Jun", "spend": 500000, "value": 0}
+        ],
+        "metrics": {
+          "Avg. Review Time": "4.2 hours (Baseline: 4.3)",
+          "Adoption Rate": "3%",
+          "Manual Errors": "N/A"
+        },
+        "aiInsight": {
+          "type": "negative",
+          "title": "95% likely to fail 6-month ROI goal",
+          "reason": "User adoption is 3%. The core business metric (Review Time) has not improved.",
+          "recommendation": "Pause funding immediately. Investigate user adoption failure. Re-allocate remaining $250k budget to a high-ROI project."
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Sales Chatbot (Pilot)",
+      "status": "In-Pilot",
+      "spend": 75000,
+      "value": 15000,
+      "roi": 0.2,
+      "details": {
+        "description": "Pilot chatbot for inbound lead qualification.",
+        "chartData": [
+          {"month": "May", "spend": 25000, "value": 0},
+          {"month": "Jun", "spend": 75000, "value": 15000}
+        ],
+        "metrics": {
+          "Leads Qualified": "85",
+          "Adoption Rate": "N/A (Testing)",
+          "Manual Errors": "N/A"
+        },
+        "aiInsight": {
+          "type": "neutral",
+          "title": "Pilot is on track",
+          "reason": "Early data shows positive value generation, but not yet at scale.",
+          "recommendation": "Continue pilot and re-evaluate at 90 days before scaling."
+        }
+      }
+    }
+  ]
+}
